@@ -142,7 +142,7 @@ static void *thread_client(void *pdata) {
 		
 		ptr = get_user_buffer(pcblk, u);
 		memset(ptr, 0, frames_req*pcblk->frame_size);
-		printf("[c]buf = 0x%x, size = 0x%x\n", ptr, frames_req*pcblk->frame_size);
+		printf("[c]buf = 0x%x, size = 0x%x\n", (unsigned int)ptr, frames_req*pcblk->frame_size);
 		
 		step_user(pcblk, frames_req);
 				
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
 	pcblk->frame_count = BUF_FRAME_COUNT;
 	pcblk->frame_size = BUF_FRAME_SIZE;
 
-	printf("[init] buf = 0x%x, end = 0x%x\n", pcblk->buffer, (int8_t *)pcblk->buffer + BUF_FRAME_SIZE*BUF_FRAME_COUNT);
+	printf("[init] buf = 0x%x, end = 0x%x\n", (unsigned int)pcblk->buffer, (unsigned int)pcblk->buffer + BUF_FRAME_SIZE*BUF_FRAME_COUNT);
 
 	pthread_create(&tid, NULL, thread_client, pcblk);
 
@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
 		
 		ptr = (int8_t *)pcblk->buffer + (s - pcblk->server_base) * pcblk->frame_size;
 		memset(ptr, 0, frames_req*pcblk->frame_size);
-		printf("[s]buf = 0x%x, size = 0x%x\n", ptr, frames_req*pcblk->frame_size);
+		printf("[s]buf = 0x%x, size = 0x%x\n", (unsigned int)ptr, frames_req*pcblk->frame_size);
 		step_server(pcblk, frames_req);
 		
 		usleep(DELAY_S*1000);
