@@ -1,0 +1,34 @@
+1.执行
+autoscan
+
+2.修改configure.scan
+#增加automake
+AM_INIT_AUTOMAKE
+
+#修改
+#AC_CONFIG_FILES([Makefile
+#                 src/Makefile])
+AC_OUTPUT(Makefile src/Makefile)
+
+3.执行
+mv configure.scan configure.in
+
+4.执行
+autoreconf -fvi
+
+5. 
+#x86
+./configure
+
+#arm
+./configure --host=arm-linux
+
+#指定编译选项
+./configure CFLAGS="-O2"
+
+6.编译
+make
+
+  
+
+
