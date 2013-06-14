@@ -5,17 +5,15 @@
  * @note :
  * 		
  * 
- **/
-#include <stdio.h>
-#include <stdint.h>
-#include <errno.h>
+ **/   
+#include <stdio.h> 
 #include <malloc.h>
 
+#include <errno.h>
 #include <stdbool.h>
+#include <string.h>
+#define __USE_GNU
 #include <sys/socket.h>
-#include <sys/select.h>
-#include <sys/time.h>
-#include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
 
@@ -26,7 +24,9 @@
 #else
 #endif
 
-//#define CREDENTIALS_ENABLE
+#ifdef __USE_GNU
+#define CREDENTIALS_ENABLE
+#endif 
 
 #define BUF_SZ		(64*1024)
 
@@ -67,12 +67,14 @@ ssize_t uevent_kernel_multicast_recv(int socket, void *buffer, size_t length) {
     struct cmsghdr *cmsg = CMSG_FIRSTHDR(&hdr);
     if (cmsg == NULL || cmsg->cmsg_type != SCM_CREDENTIALS) {
         /* ignoring netlink message with no sender credentials */
+        printf("no sender credentials\n");
         goto out;
     }
 
     struct ucred *cred = (struct ucred *)CMSG_DATA(cmsg);
     if (cred->uid != 0) {
         /* ignoring netlink message from non-root user */
+        printf("non-root user\n");
         goto out;
     }
 #endif
@@ -113,6 +115,53 @@ int uevent_open_socket(int buf_sz, bool passcred)
 
     return s;
 }
+
+/* Same as strlen(x) for constant string literals ONLY */
+#define CONST_STRLEN(x)  (sizeof(x)-1)
+
+/* Convenience macro to call has_prefix with a constant string literal  */
+#define HAS_CONST_PREFIX(str,end,prefix)  has_prefix((str),(end),prefix,CONST_STRLEN(prefix))
+
+/*
+ * Parse an ASCII-formatted message from a NETLINK_KOBJECT_UEVENT
+ * netlink socket.
+ */
+bool uevent_parse_message(char *buffer, int size) {
+    const char *s = buffer;
+    int i;
+    const char *p;
+
+    if (size == 0)
+        return false;
+	
+    /* Ensure the buffer is zero-terminated, the code below depends on this */
+    buffer[size-1] = '\0';
+    	
+	/* buffer is 0-terminated, no need to check p < end */
+	for (p = s; *p != '@'; p++) {
+		if (!*p) { /* no '@', should not happen */
+			return false;
+		}
+	}
+	buffer[p - s] = 0;
+
+	if (strstr(p+1, "block") == NULL) {
+		//ignore not block event
+		return false;
+	}
+            
+    if (!strcmp(s, "add")) {
+		printf("-> add ");
+	} else if (!strcmp(s, "remove")) {
+		printf("-> remove ");
+	} else if (!strcmp(s, "change")) {
+		printf("-> change ");
+	}
+
+	printf(" %s\n", p+1);
+    
+    return true;
+}
  
 int main(int argc, char *argv[]){	
 	void *buffer;
@@ -124,7 +173,7 @@ int main(int argc, char *argv[]){
 		return -1;
 	}
 	
-	sock = uevent_open_socket(BUF_SZ, false);
+	sock = uevent_open_socket(BUF_SZ, true);
 	if (sock < 0) {
 		printf("uevent open socket error!\n");
 		free(buffer);
@@ -156,7 +205,7 @@ int main(int argc, char *argv[]){
 			memset(buffer, 0, BUF_SZ);
 			sz = uevent_kernel_multicast_recv(sock, buffer, BUF_SZ);
 			if (sz > 0) {
-				printf("%s\n", (char *)buffer);
+				uevent_parse_message(buffer, sz);
 			}
 		}
 	}
