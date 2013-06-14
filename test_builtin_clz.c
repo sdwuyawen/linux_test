@@ -24,6 +24,7 @@
 int main(int argc, char *argv[])
 {
 	int value;
+	int value1;
 	int i;
 	
 	if (argc < 2) {
@@ -32,15 +33,24 @@ int main(int argc, char *argv[])
 	}
 
 	value = strtol(argv[1], 0, 16);
-
+	value1 = value;
+	printf("================ clz =================\n");
 	while (value) {
 		i = 31 - __builtin_clz(value);
 
 		value &= ~(1<<i);
 
-		printf("[%d] = 0x%x\n", i, value);
+		printf("[%d] = 0x%08x\n", i, value);
 	}
-    
+
+	printf("================ ctz =================\n");
+	i = __builtin_ctz(value1);
+	printf("[%d] = 0x%08x\n", i, value1);
+
+	value1 = ~value1;
+	i = __builtin_ctz(value1);
+	printf("[%d] = 0x%08x\n", i, value1);
+
     return 0;
 }
 
