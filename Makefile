@@ -23,10 +23,10 @@ clean:
 
 $(TARGETS_C): bin/% : %.c
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	@echo "\033[34;1m[CC] $< -> $@ \033[0m"
+	@echo -e "\033[34;1m[CC] $< -> $@ \033[0m"
 	@$(CC) $(CFLAGS) -o $@ $< $(LOCAL_LDLIBS)
 
 $(TARGETS_CXX): bin/% : %.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	@echo "\033[34;1m[CXX] $< -> $@ \033[0m"
+	@echo -e "\033[34;1m[CXX] $< -> $@ \033[0m"
 	@$(CXX) $(CFLAGS) -o $@ $< $(LOCAL_LDLIBS)
