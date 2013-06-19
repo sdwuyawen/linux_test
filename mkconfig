@@ -1,0 +1,9 @@
+$(TARGETS_C): $(TARGETS_DIR)/% : %.c
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	@echo -e "\033[34;1m[CC] $< -> $@ \033[0m"
+	$(_Q)$(CC) $(CFLAGS) -o $@ $< $(LOCAL_LDLIBS)
+
+$(TARGETS_CXX): $(TARGETS_DIR)/% : %.cpp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	@echo -e "\033[34;1m[CXX] $< -> $@ \033[0m"
+	$(_Q)$(CXX) $(CFLAGS) -o $@ $< $(LOCAL_LDLIBS)

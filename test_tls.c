@@ -6,6 +6,10 @@
  * 		(1).如果退出线程是清空了key, 那么key的callback函数也不会去调用；
  * 		(2).PR_SET_NAME之后，可以在ubuntu下通过top -H -p <pid>, 查看线程的运行情况；
  * 		(3).可参考pulseaudio对thread的封装；
+ * 		(4).线程的 stack 如下：
+ *			high addr      | stack ..... | guard ... |       low addr
+ * 			可以将 guard 部分的内存 mmap 为不可读/写。当 stack overflow 时，则收到 SIGSEGV。
+ *			对于上面的 user-defined stack，无论是否设置 guardsize，pthread 都忽略之
  * 
  **/
 #include <stdio.h>
