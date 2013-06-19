@@ -8,20 +8,25 @@ else
 _Q := @
 endif
 
-
+#=========================================================================
 TARGETS_ROOT := $(shell pwd)
 TARGETS_DIR := $(TARGETS_ROOT)/bin
+TARGETS_OBJ_DIR := .obj
 
+#=========================================================================
 export CC
 export CXX
 export _Q
 export TARGETS_ROOT
 export TARGETS_DIR
+export TARGETS_OBJ_DIR
 
 #=========================================================================
 FILTER_SRCS := $(shell cat filter.lst)
 FILTER_SRCS_C := $(filter *.c,$(FILTER_SRCS))
 FILTER_SRCS_CXX := $(filter *.cpp,$(FILTER_SRCS))
+
+#=========================================================================
 
 SRCS_C := $(wildcard *.c)
 SRCS_C := $(filter-out $(FILTER_SRCS_C),$(SRCS_C))
@@ -39,21 +44,30 @@ LOCAL_LDLIBS := -lpthread -m32
 
 CFLAGS += $(LOCAL_CFLAGS)
 #=========================================================================
-MK_FILE_LIST := $(shell find -name *.mk)
+MK_FILE_LIST := $(shell find $(TARGETS_ROOT) -name *.mk)
 
 #=========================================================================
 all: debug $(TARGETS_C) $(TARGETS_CXX)
 	@for file in $(MK_FILE_LIST) ; do \
+		pushd .; \
 		cd `dirname $$file`; \
-		echo -e "\033[32;1m=== make -f $$file === \033[0m" ; \
-		$(MAKE) -f `basename $$file` $@; \
-		cd -; \
+		echo -e "\033[35;1m[`dirname $$file`] \033[36;1m`basename $$file` \033[0m" ; \
+		$(MAKE) -f `basename $$file` all_tests; \
+		popd; \
 	done
 	@echo "=========== build tests OK ==========="
-
+	
 debug:
 
 clean:
+	@echo -e "\033[35;1m=== clean targets === \033[0m" ;
+	@for file in $(MK_FILE_LIST) ; do \
+		pushd .; \
+		cd `dirname $$file`; \
+		echo -e "\033[35;1m[`dirname $$file`] clean \033[0m" ; \
+		$(MAKE) -f `basename $$file` clean_tests; \
+		popd; \
+	done	
 	@rm -rf bin 
 
 #=========================================================================
