@@ -21,6 +21,12 @@
 #include <sys/prctl.h>
 #endif
 
+#define handle_error_en(err, str) \
+{ \
+	printf("[%d] %s\n", err, str); \
+	return ; \
+}
+
 static pthread_once_t g_once = PTHREAD_ONCE_INIT;
 static pthread_key_t g_key = 0;
 
@@ -28,6 +34,8 @@ typedef struct {
 	pthread_t id;		
 	char *name;	
 	int flags;
+	void *stack_addr;
+	size_t stack_size;
 }thread_info_t;
 
 static void free_cb(void *p) {
@@ -61,16 +69,49 @@ static void test_tls_destructor(void) {
 	pthread_key_delete(g_key);
 }
 
+static void
+get_stack_related_attributes(thread_info_t *t)
+{	
+	int s;
+	size_t stack_size, guard_size;
+	void *stack_addr;
+	pthread_attr_t attr;
+	const char *prefix = t->name;
+	
+	pthread_getattr_np(t->id, &attr);	
+	
+	s = pthread_attr_getguardsize(&attr, &guard_size);
+	if (s != 0)
+		handle_error_en(s, "pthread_attr_getguardsize");
+	printf("%s : Guard size          = %d bytes\n", prefix, guard_size);
+	
+	s = pthread_attr_getstack(&attr, &stack_addr, &stack_size);
+	if (s != 0)
+		handle_error_en(s, "pthread_attr_getstack");
+	printf("%s : Stack address       = %p", prefix, stack_addr);
+	
+	if (stack_size > 0)
+		printf(" (EOS = %p)", (char *) stack_addr + stack_size);	
+	printf("\n");
+	
+	t->stack_addr = stack_addr;
+	t->stack_size = stack_size;
+	printf("%s : Stack size          = 0x%x (%d) bytes\n",
+		   prefix, stack_size, stack_size);
+}
+       
 static void *thread_cb(void *pdata) {
 	thread_info_t *th = (thread_info_t *)pdata;
 	thread_info_t *t;
-	int i;
+	int i;	
 	
 	printf("enter %s, 0x%x\n", th->name, (unsigned int)th->id);
 	
 #ifdef __linux__	
 	prctl(PR_SET_NAME, th->name);
 #endif	
+	
+	get_stack_related_attributes(th);
 	
 	pthread_once(&g_once, once_init_routine); 
 	pthread_setspecific(g_key, th);	
