@@ -1,6 +1,8 @@
 /**
    @filename :
    		test_devfs.c
+   @note :
+		通过/dev/__properties__的句柄, 在进程之间共享内存.
 **/
 #include <stdio.h>
 #include <fcntl.h>
@@ -69,6 +71,7 @@ out:
 
 
 /**
+	sudo ./bin/test_devfs
  **/
 int main(int argc, char *argv[]) {
 	 int ret;
@@ -93,10 +96,10 @@ int main(int argc, char *argv[]) {
 	 } else  if (pid == 0) {
 		  /* child */
 		  printf("child\n");
-		  sprintf(prop_buf, "%d,%d", dup(w.fd), w.size); /* dup(w.fd) is used in child process. */
+		  sprintf(prop_buf, "%d,%d", dup(w.fd), w.size); /* dup(w.fd) : 复制w.fd, 在子进程可以访问这个文件句柄. */
 		  setenv("TEST_PROP", prop_buf, 1);
 		  printf("exec test_getprog\n");
-		  ret = execl("/home/paul2/work/test/linux_test/bin/test_getprop", "test_getprop", NULL);
+		  ret = execl("./bin/test_getprop", "test_getprop", NULL);
 		  printf("ret = %d, %s\n", ret, strerror(errno));
 		  _exit(127);
 	 } else {
@@ -107,7 +110,7 @@ int main(int argc, char *argv[]) {
 	 }
 	 
 
-	 printf("get any key for exit...\n");
+	 printf("%s : wait any key for exit...\n", argv[0]);
 	 getchar();
 	 
 	 close(w.fd);

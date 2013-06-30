@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 	 }
 
 	 printf("%s : %s\n", argv[0], (char *)pa);
-
+	 printf("%s : wait any key for exit...\n", argv[0]);
 	 getchar();
 	 munmap(pa, size);
 	 close(fd);
