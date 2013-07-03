@@ -30,10 +30,29 @@
 
 #define BUF_SZ		(64*1024)
 
+#define UEVENT_BUF_SZ	256
+
+/*
+ *
+ */ 
+#define BLOCK_TYPE_UNKNOWN			0 
+#define BLOCK_TYPE_DISK				1
+#define BLOCK_TYPE_PARTITION		2
+
+typedef struct {
+	unsigned char major;
+	unsigned char minor;
+	unsigned short type;
+	char dev_name[256];	
+}uevent_block_info_t;
+
+static char g_uevent_buf[UEVENT_BUF_SZ];
+static uevent_block_info_t g_blk_info;
+
 /**
  * Like recv(), but checks that messages actually originate from the kernel.
  */
-ssize_t uevent_kernel_multicast_recv(int socket, void *buffer, size_t length) {
+static ssize_t uevent_kernel_multicast_recv(int socket, void *buffer, size_t length) {
 #if 1
     struct iovec iov = { buffer, length };
     struct sockaddr_nl addr;
@@ -90,7 +109,7 @@ out:
 #endif    
 }
 
-int uevent_open_socket(int buf_sz, bool passcred)
+static int uevent_open_socket(int buf_sz, bool passcred)
 {
     struct sockaddr_nl addr;
     int on = passcred;
@@ -116,6 +135,58 @@ int uevent_open_socket(int buf_sz, bool passcred)
     return s;
 }
 
+/*
+ * 
+ */ 
+static int uevent_get_block_info(const char *blk_str, uevent_block_info_t *pinfo) {
+	char uevent_path[128];	
+	FILE *pf;	
+	char *str;
+	char *ptr;
+	int i;
+	
+	if (blk_str == NULL || pinfo == NULL) {
+		return -1;
+	}
+	
+	memset(pinfo, 0, sizeof(*pinfo));
+	
+	sprintf(uevent_path, "/sys/%s/uevent", blk_str);
+	//printf("path : %s\n", uevent_path);
+	pf = fopen(uevent_path, "r");
+	if (pf == NULL) {
+		//printf("can not open %s\n", uevent_path);
+		return -1;
+	}
+		
+	str = fgets(g_uevent_buf, UEVENT_BUF_SZ, pf);	
+	ptr = strchr(str, '=');
+	pinfo->major = atoi(ptr+1);
+	str = fgets(g_uevent_buf, UEVENT_BUF_SZ, pf);	
+	ptr = strchr(str, '=');
+	pinfo->minor = atoi(ptr+1);
+
+	str = fgets(g_uevent_buf, UEVENT_BUF_SZ, pf);	
+	ptr = strchr(str, '=');
+	for (i = 0, ptr += 1; (*ptr != '\r') && (*ptr != '\n'); ptr++, i++) {	
+		pinfo->dev_name[i] = *ptr;
+	}
+	pinfo->dev_name[i] = '\0';
+
+	str = fgets(g_uevent_buf, UEVENT_BUF_SZ, pf);	
+	ptr = strchr(str, '=');
+	if (!strncmp(ptr+1, "disk", 4)) {
+		pinfo->type = BLOCK_TYPE_DISK;
+	} else if (!strncmp(ptr+1, "partition", 9)) {
+		pinfo->type = BLOCK_TYPE_PARTITION;
+	} else {
+	}
+	
+	fclose(pf);
+	
+	return 0;
+}
+
 /* Same as strlen(x) for constant string literals ONLY */
 #define CONST_STRLEN(x)  (sizeof(x)-1)
 
@@ -126,10 +197,11 @@ int uevent_open_socket(int buf_sz, bool passcred)
  * Parse an ASCII-formatted message from a NETLINK_KOBJECT_UEVENT
  * netlink socket.
  */
-bool uevent_parse_message(char *buffer, int size) {
+static bool uevent_parse_message(char *buffer, int size) {
     const char *s = buffer;
-    int i;
+    int ret;
     const char *p;
+    char *blk_str;    
 
     if (size == 0)
         return false;
@@ -145,7 +217,8 @@ bool uevent_parse_message(char *buffer, int size) {
 	}
 	buffer[p - s] = 0;
 
-	if (strstr(p+1, "block") == NULL) {
+	blk_str = strstr(p+1, "block");
+	if (blk_str == NULL) {
 		//ignore not block event
 		return false;
 	}
@@ -159,6 +232,11 @@ bool uevent_parse_message(char *buffer, int size) {
 	}
 
 	printf(" %s\n", p+1);
+	
+	ret = uevent_get_block_info(blk_str, &g_blk_info);
+	if (ret == 0) {
+		printf("[blk %s\t]: %d, %d, %d\n", g_blk_info.dev_name, g_blk_info.major, g_blk_info.minor, g_blk_info.type);
+	}
     
     return true;
 }
