@@ -43,10 +43,10 @@ int test_open(void *ptr) {
  */
 #if 0
 hal_module_info_t HAL_MODULE_INFO_SYM = {
-	.tagname = TAG_NAME;
-	.ver_major = 1;
-	.ver_minor = 0;
-	.open = test_open;
+	.tagname = TAG_NAME,
+	.ver_major = 1,
+	.ver_minor = 0,
+	.open = test_open,
 };
 
 #else

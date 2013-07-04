@@ -21,7 +21,7 @@ int test_open(void *ptr) {
 }
 
 int main(int argc, char *argv[]) {
-	char *lib_path = "libtest.so";
+	char *lib_path = "./bin/libtest.so";
 	void *handle = NULL;
 	const char *sym = HAL_MODULE_INFO_SYM_STR;
 	hal_module_info_t *hmi;
@@ -33,22 +33,22 @@ int main(int argc, char *argv[]) {
 	printf("lib path : %s\n", lib_path);
 	
 	dlerror();		//clear error code
-	handle = dlopen(lib_path, RTLD_LAZY);
-	//lib_ptr = dlopen(path_so, RTLD_NOW);
+	//handle = dlopen(lib_path, RTLD_LAZY);
+	handle = dlopen(lib_path, RTLD_NOW);
 	if (handle == NULL) {
-		fputs (dlerror(), stderr);
+		fprintf(stderr, "%s\n", dlerror());		
 		exit(1);
 	}
 	
 	hmi = (hal_module_info_t *)dlsym(handle, sym);
 	if ((error = dlerror()) != NULL) {
-		fputs (error, stderr);
+		fprintf(stderr, "%s\n", dlerror());		
 		exit(1);
 	}
 	
 	//info
 	printf("========= lib info =========\n");
-	printf("%s : %d, %d\n", hmi->tagname, hmi->ver_major, hmi->ver_minor);
+	printf("%s : ver%d.%d\n", hmi->tagname, hmi->ver_major, hmi->ver_minor);
 	printf("%d, %d\n", hmi->open(NULL), g_test_cnt);
 	
 	dlclose(handle);
