@@ -1,0 +1,136 @@
+本文也即《Learning the bash Shell》3rd Edition的第四章 Basic Shell Programming之读书笔记之二，但我们将不限于此。
+
+String操作
+　　在下面的描述中，":"是可以删除的，存在是表示“存在但不允许为null”，不带“:”表示“存在”，即允许为空：
+	${varname:-word} ：如果varname存在并且不为null，返回varname的值，否则返回word。用于当某个变量不存在或没定义时返回一个缺省的值。
+		如果为${varname-word}，则当varname存在，可以为null，例如我们定义myparam=，返回varname的值，否则返回word。
+	
+	下面也可以删除":",含义相同，不在复述。	
+	${varname:=word} ：如果varname存在并且不为null，返回varname的值，否则向其赋值为word，并返回该值。用于对某个不存在或没定义变量设置缺省。
+	对于位置参数是只读不能赋值。
+	
+	${varname:?message} ：如果varname存在并且不为null，返回varname的值，否则打印信息varname:message，并abort脚本，如果我们没有设置message，
+	将使用缺省的“parameter null or not set”。用于检查变量没有定义的错误。
+	
+	${varname:+word} ：如果varname存在并且不为null，返回word的值，否则返回null。用于检测变量是否存在。
+	
+	${varname:offset:length} ：获取substring的操作。他返回从varname中从offset位置开始，长度为length的字符串。
+	第一个位置为0，如果不给出length或者无效（小于0），则返回offset之后全部的字符，如果是{@:offset:length}，则返回脚本参数从第offset个参数开始的总共length个参数。
+
+　　下面给出一个例子来学习他们的用法。我们建立一个文件，在里面存贮一些条目，我们希望能对条目进行排序，从大到小，并输出最前的N个条目。文件例如子如下：
+    [wei@wei-desktop bash-learning]$ cat myinfo
+    5    Depeche Mode
+    2    Split Enz
+    3    Simple Minds
+    1    Vivaldi, Antonio
+    20  Hello, world
+    7    adsf,dafdsf
+    15  Hello, myfriend
+
+　　我们创建我们的脚本文件highest用作测试，内容如下：其他颜色字体表示说明，不作为文件的一部分，我们用注释的方式，也不影响文件的执行
+    # ”#“开始表示注释行，一个良好的变成习惯是文件的开始给出文件的信息，以便阅读
+    # highest [howmany]
+    # sort the entry inf on a descend order, and high line the top
+    # [hwomany] entry, default is 5
+    #
+    # 要求用户给出参数<文件名>，否则退出脚本，要求用户给出显示的条目，否则使用缺省值5
+    filename=${1? 'Used command ./test [entry_num]'}
+    howmany=${2:-5}
+    # header是用来表明输出的时候显示的某些信息，如果这行我们注释掉，将不显示
+    header=set
+    #echo带有两个参数-n，表示显示后不执行LINEFEED，即不换行。-e表示解析/n，不将其作为两个字符，视为换行符号。我们如果注释掉header，则不会显示任何内容。
+    echo -e -n ${header:+"num    name/n"}
+    echo -e -n ${header:+"----    -----/n"}
+    #sort是个排序的命令，-r表示reverse的顺序，即从大到小，-n表示将第一个参数视为数字，而不是character的方式。| 表示pipe输出，head -N 表示显示头N行。
+    sort -nr $filename | head -$howmany
+
+样式匹配
+　　Pattern可以包含wildcard，操作如下：
+
+    ${variable#pattern} ：如果变量的开始匹配pattern，则去除最小匹配，返回后面的字符，如果不匹配，给出变量。
+    ${variable##pattern} ：如果变量的开始匹配pattern，则去除最大匹配，返回后面的字符，如果不匹配，给出变量。
+    ${variable%pattern} ：如果变量的最后匹配pattern，则去除最小匹配，返回前面的字符，如果不匹配，给出变量。
+    ${variable%%pattern} ：如果变量的最后匹配pattern，则去除最大匹配，返回前 面的字符，如果不匹配，给出变量。
+    ${variable/pattern/string} ：将第一个匹配更换为string，如果string为null，则删除。如果variable是@或者*，则根据命令所得的参数为单元来执行。
+    ${variable//pattern/string} ：将所有匹配更换为string，如果string为null，则删除。如果variable是@或者*，则根据命令所得的参数为单元来执行。
+
+　　最大或者最小批评只有在含有通配符的情况下有区别，否是对于精确匹配都是无区别的。下面是例子。
+
+    [wei@wei-desktop bash-learning]$ echo $aa
+    abc.xyz.hello.world
+    [wei@wei-desktop bash-learning]$ echo ${aa#*.}
+    xyz.hello.world
+    [wei@wei-desktop bash-learning]$ echo ${aa##*.}
+    world
+    [wei@wei-desktop bash-learning]$ echo ${aa%.*}
+    abc.xyz.hello
+    [wei@wei-desktop bash-learning]$ echo ${aa%%.*}
+    abc
+    [wei@wei-desktop bash-learning]$ echo ${aa/./-}
+    abc-xyz.hello.world
+    [wei@wei-desktop bash-learning]$ echo ${aa//./-}
+    abc-xyz-hello-world
+
+　　图案匹配经常用于文件名的处理，例如去除路径名，获取文件后缀或者前缀等等。
+
+　　查看extglob的选项是否打开：shopt | grep extglob，如果打开，可以使用或扩展的样式匹配。打开方式shopt -s exglob，关闭使用-u。可以用这些来替代通配符：
+
+    *(patternlist ) ，其中paternlist的格式为pattern1|pattern2|pattern3|….，表示匹配0个或者多个pattern
+    +(patternlist ) ，表示匹配1个或者多个pattern
+    ?(patternlist ) ，表示匹配0个或者1个pattern
+    @(patternlist ) ，表示匹配1个pattern
+    !(patternlist ) ，表示不匹配任何的pattern
+
+　　例子，echo ${aa//+(abc|hello)/ALICE}的值为ALICE.xyz.ALICE.world
+
+长度操作
+　　${#varname} ，例如上面的例子中${#aa}为19。
+
+command substutuion:使用命令的输入作为赋值
+　　可以通过command substitution 来设置参数的值。允许将命令的输出作为变量的赋值。在makefile的编写中，我们曾使用类似的方式即`pkg-config clutter-1.0 --libs`,
+	这里用``包含的内容就是命令执行的输出结果。但是这种方式是为了和旧版本兼容，可以使用$(UNIX command )的方式。这种方式可以嵌套的，
+	及里面的UNIX command也可以是command substitution。但是使用``的方式无法实现嵌套，下面是一些例子：
+
+    $(ls $(pwd))，给出当前目录的文件。例如$(ls $HOME)，给出用户目录～下面的文件。
+    例如
+    type -all -path command给出命令的路径，如果我们需要仔细查看相关文件属性，可以使用ls -l $(type -all -path vi)。
+    vi $(grep -l 'command substitution' ch*)，表示编辑当前目录开ch大头的含有'command substitution'内容的文件，其中-来表示，只显示目标文件。
+
+cut和awk的用法:获取列信息
+　　这两个适用于获得列的方式，旧的BSD系统不提供cut，需要使用awk来替代。
+	使用方式cut –fN –dC filename或者awk –FC '{print $N}' filename。
+	其中N表示列号，C表示分割符号，缺省为tab。如果我们使用空格，可以为’ ‘，如果使用|等或产生奇异的特殊符合用/|的方式。
+	例如
+		显示用户名cat /etc/passwd | cut –f1 –d:。
+	对于命令在stdout的输出，使用空格对其，
+	例如
+		who，我们可以使用参数-cX-Y的方式，表示显示为开始的第X个字符到第Y个字符，X从1开始，如果没有Y，表示一直显示到最后。
+	例如
+		who | cut –c10-15
+
+一个stack的小例子
+　　下面我们给出一个FILO的stack例子，用来复习string的操作。
+
+    push_func()
+    {
+       #注意如果没有给出func的参数，则在func中跳出，而不是终结整个脚本
+        entry=${1:?"Please enter the entry as push_func param"}
+        #注意在bottom后面有一个空格，我们使用空格作为分割，这是为了pop最后一个entry用
+        mystack="$entry ${mystack:-bottom }"
+        echo "push $entry in stack : $mystack"
+    }
+
+    pop_func()
+    {
+        #删除最top的entry
+        mystack=${mystack#*' '}
+       #获取当前stack的top元素 。
+        entry=${mystack%% *}
+        echo "After pop, top entry is '$entry', stack is $mystack"
+    }
+
+    push_func one    
+    push_func two
+    pop_func
+    pop_func
+    pop_func
