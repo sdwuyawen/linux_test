@@ -39,7 +39,7 @@ TARGETS_CXX := $(subst .cpp, ,$(SRCS_CXX))
 TARGETS_CXX :=  $(foreach i,$(TARGETS_CXX),$(TARGETS_DIR)/$(i))
 
 #=========================================================================
-LOCAL_CFLAGS := -I/lib/modules/`uname -r`/build/include
+LOCAL_CFLAGS := -I/lib/modules/`uname -r`/build/include -D_GNU_SOURCE
 LOCAL_LDLIBS := -lpthread -m32
 
 CFLAGS += $(LOCAL_CFLAGS)

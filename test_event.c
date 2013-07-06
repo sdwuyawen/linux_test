@@ -1,118 +1,35 @@
 /**
- * @filename :
+ *	@filename :
  * 		test_event.c
  * 
- * @note :
- * 		
+ * 	@note :
+ * 		(1).recvmsg()函数会读取多个字符串返回到msg中，要分析msg中的多个字符串的信息才行。
  * 
- **/   
-#include <stdio.h> 
-#include <malloc.h>
-
-#include <errno.h>
-#include <stdbool.h>
+ **/ 
+#include <stdio.h>
 #include <string.h>
-#define __USE_GNU
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <unistd.h>
-
+#include <sys/socket.h>
 #include <linux/netlink.h>
+#include <sys/types.h>
+#include <sys/un.h>
 
-#ifndef ANDROID_OS
-#define SLOGE		printf
-#else
-#endif
+#define _CRED_EN_
 
-#ifdef __USE_GNU
-#define CREDENTIALS_ENABLE
-#endif 
+struct uevent {
+    const char *action;
+    const char *path;
+    const char *subsystem;
+    const char *firmware;
+    int major;
+    int minor;
+};
 
-#define BUF_SZ		(64*1024)
-
-#define UEVENT_BUF_SZ	256
-
-/*
- *
- */ 
-#define BLOCK_TYPE_UNKNOWN			0 
-#define BLOCK_TYPE_DISK				1
-#define BLOCK_TYPE_PARTITION		2
-
-typedef struct {
-	unsigned char major;
-	unsigned char minor;
-	unsigned short type;
-	char dev_name[256];	
-}uevent_block_info_t;
-
-static char g_uevent_buf[UEVENT_BUF_SZ];
-static uevent_block_info_t g_blk_info;
-
-/**
- * Like recv(), but checks that messages actually originate from the kernel.
- */
-static ssize_t uevent_kernel_multicast_recv(int socket, void *buffer, size_t length) {
-#if 1
-    struct iovec iov = { buffer, length };
-    struct sockaddr_nl addr;
-    
-#ifdef CREDENTIALS_ENABLE    
-    char control[CMSG_SPACE(sizeof(struct ucred))];
-#endif    
-    struct msghdr hdr = {
-        &addr,
-        sizeof(addr),
-        &iov,
-        1,
-#ifdef CREDENTIALS_ENABLE            
-        control,
-        sizeof(control),
-#endif    
-        0,
-    };
-
-    ssize_t n = recvmsg(socket, &hdr, 0);
-    if (n <= 0) {
-        return n;
-    }
-
-    if (addr.nl_groups == 0 || addr.nl_pid != 0) {
-        /* ignoring non-kernel or unicast netlink message */
-        goto out;
-    }
-    
-#ifdef CREDENTIALS_ENABLE    
-    struct cmsghdr *cmsg = CMSG_FIRSTHDR(&hdr);
-    if (cmsg == NULL || cmsg->cmsg_type != SCM_CREDENTIALS) {
-        /* ignoring netlink message with no sender credentials */
-        printf("no sender credentials\n");
-        goto out;
-    }
-
-    struct ucred *cred = (struct ucred *)CMSG_DATA(cmsg);
-    if (cred->uid != 0) {
-        /* ignoring netlink message from non-root user */
-        printf("non-root user\n");
-        goto out;
-    }
-#endif
-    return n;
-
-out:
-    /* clear residual potentially malicious data */
-    bzero(buffer, length);
-    errno = EIO;
-    return -1;
-#else
-	return read(socket, buffer, length);
-#endif    
-}
-
-static int uevent_open_socket(int buf_sz, bool passcred)
+static int open_uevent_socket(void)
 {
     struct sockaddr_nl addr;
-    int on = passcred;
+    int sz = 64*1024; // XXX larger? udev uses 16MB!
+    int on = 1;
     int s;
 
     memset(&addr, 0, sizeof(addr));
@@ -124,7 +41,7 @@ static int uevent_open_socket(int buf_sz, bool passcred)
     if(s < 0)
         return -1;
 
-    setsockopt(s, SOL_SOCKET, SO_RCVBUFFORCE, &buf_sz, sizeof(buf_sz));
+    setsockopt(s, SOL_SOCKET, SO_RCVBUFFORCE, &sz, sizeof(sz));
     setsockopt(s, SOL_SOCKET, SO_PASSCRED, &on, sizeof(on));
 
     if(bind(s, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
@@ -135,161 +52,108 @@ static int uevent_open_socket(int buf_sz, bool passcred)
     return s;
 }
 
-/*
- * 
- */ 
-static int uevent_get_block_info(const char *blk_str, uevent_block_info_t *pinfo) {
-	char uevent_path[128];	
-	FILE *pf;	
-	char *str;
-	char *ptr;
-	int i;
-	
-	if (blk_str == NULL || pinfo == NULL) {
-		return -1;
-	}
-	
-	memset(pinfo, 0, sizeof(*pinfo));
-	
-	sprintf(uevent_path, "/sys/%s/uevent", blk_str);
-	//printf("path : %s\n", uevent_path);
-	pf = fopen(uevent_path, "r");
-	if (pf == NULL) {
-		//printf("can not open %s\n", uevent_path);
-		return -1;
-	}
+static void parse_event(const char *msg, struct uevent *uevent)
+{
+#if  1
+    uevent->action = "";
+    uevent->path = "";
+    uevent->subsystem = "";
+    uevent->firmware = "";
+    uevent->major = -1;
+    uevent->minor = -1;
+
+        /* currently ignoring SEQNUM */
+    while(*msg) {
+		printf("%s\n", msg);
+        if(!strncmp(msg, "ACTION=", 7)) {
+            msg += 7;
+            uevent->action = msg;
+        } else if(!strncmp(msg, "DEVPATH=", 8)) {
+            msg += 8;
+            uevent->path = msg;
+        } else if(!strncmp(msg, "SUBSYSTEM=", 10)) {
+            msg += 10;
+            uevent->subsystem = msg;
+        } else if(!strncmp(msg, "FIRMWARE=", 9)) {
+            msg += 9;
+            uevent->firmware = msg;
+        } else if(!strncmp(msg, "MAJOR=", 6)) {
+            msg += 6;
+            uevent->major = atoi(msg);
+        } else if(!strncmp(msg, "MINOR=", 6)) {
+            msg += 6;
+            uevent->minor = atoi(msg);
+        }
+
+            /* advance to after the next \0 */
+        while(*msg++)
+            ;
+    }
+
+    printf("event { '%s', '%s', '%s', '%s', %d, %d }\n",
+                    uevent->action, uevent->path, uevent->subsystem,
+                    uevent->firmware, uevent->major, uevent->minor);
+#endif
+}
+
+#define UEVENT_MSG_LEN  1024
+void handle_device_fd(int fd)
+{
+	printf("enter %s\n", __func__);
+    for(;;) {
+        char msg[UEVENT_MSG_LEN+2];
+    #ifdef _CRED_EN_
+        char cred_msg[CMSG_SPACE(sizeof(struct ucred))];
+    #endif
+        struct iovec iov = {msg, sizeof(msg)};
+        struct sockaddr_nl snl;
+    #ifdef _CRED_EN_
+        struct msghdr hdr = {&snl, sizeof(snl), &iov, 1, cred_msg, sizeof(cred_msg), 0};
+	#else
+		struct msghdr hdr = {&snl, sizeof(snl), &iov, 1, 0};
+	#endif
+        ssize_t n = recvmsg(fd, &hdr, 0);
+        if (n <= 0) {
+            break;
+        }
+
+        if ((snl.nl_groups == 0) || (snl.nl_pid != 0)) {
+            /* ignoring non-kernel netlink multicast message */
+            continue;
+        }
+	#ifdef _CRED_EN_
+        struct cmsghdr * cmsg = CMSG_FIRSTHDR(&hdr);
+        if (cmsg == NULL || cmsg->cmsg_type != SCM_CREDENTIALS) {
+            /* no sender credentials received, ignore message */
+            continue;
+        }
 		
-	str = fgets(g_uevent_buf, UEVENT_BUF_SZ, pf);	
-	ptr = strchr(str, '=');
-	pinfo->major = atoi(ptr+1);
-	str = fgets(g_uevent_buf, UEVENT_BUF_SZ, pf);	
-	ptr = strchr(str, '=');
-	pinfo->minor = atoi(ptr+1);
+        struct ucred * cred = (struct ucred *)CMSG_DATA(cmsg);
+        if (cred->uid != 0) {
+            /* message from non-root user, ignore */
+            continue;
+        }
+	#endif
+        if(n >= UEVENT_MSG_LEN)   /* overflow -- discard */
+            continue;
 
-	str = fgets(g_uevent_buf, UEVENT_BUF_SZ, pf);	
-	ptr = strchr(str, '=');
-	for (i = 0, ptr += 1; (*ptr != '\r') && (*ptr != '\n'); ptr++, i++) {	
-		pinfo->dev_name[i] = *ptr;
-	}
-	pinfo->dev_name[i] = '\0';
+        msg[n] = '\0';
+        msg[n+1] = '\0';
 
-	str = fgets(g_uevent_buf, UEVENT_BUF_SZ, pf);	
-	ptr = strchr(str, '=');
-	if (!strncmp(ptr+1, "disk", 4)) {
-		pinfo->type = BLOCK_TYPE_DISK;
-	} else if (!strncmp(ptr+1, "partition", 9)) {
-		pinfo->type = BLOCK_TYPE_PARTITION;
-	} else {
+        struct uevent uevent;
+        parse_event(msg, &uevent);
 	}
-	
-	fclose(pf);
-	
-	return 0;
 }
 
-/* Same as strlen(x) for constant string literals ONLY */
-#define CONST_STRLEN(x)  (sizeof(x)-1)
-
-/* Convenience macro to call has_prefix with a constant string literal  */
-#define HAS_CONST_PREFIX(str,end,prefix)  has_prefix((str),(end),prefix,CONST_STRLEN(prefix))
-
-/*
- * Parse an ASCII-formatted message from a NETLINK_KOBJECT_UEVENT
- * netlink socket.
- */
-static bool uevent_parse_message(char *buffer, int size) {
-    const char *s = buffer;
-    int ret;
-    const char *p;
-    char *blk_str;    
-
-    if (size == 0)
-        return false;
+int main(void)
+{
+	int fd = 0;
 	
-    /* Ensure the buffer is zero-terminated, the code below depends on this */
-    buffer[size-1] = '\0';
-    	
-	/* buffer is 0-terminated, no need to check p < end */
-	for (p = s; *p != '@'; p++) {
-		if (!*p) { /* no '@', should not happen */
-			return false;
-		}
-	}
-	buffer[p - s] = 0;
-
-	blk_str = strstr(p+1, "block");
-	if (blk_str == NULL) {
-		//ignore not block event
-		return false;
-	}
-            
-    if (!strcmp(s, "add")) {
-		printf("-> add ");
-	} else if (!strcmp(s, "remove")) {
-		printf("-> remove ");
-	} else if (!strcmp(s, "change")) {
-		printf("-> change ");
-	}
-
-	printf(" %s\n", p+1);
-	
-	ret = uevent_get_block_info(blk_str, &g_blk_info);
-	if (ret == 0) {
-		printf("[blk %s\t]: %d, %d, %d\n", g_blk_info.dev_name, g_blk_info.major, g_blk_info.minor, g_blk_info.type);
-	}
-    
-    return true;
-}
- 
-int main(int argc, char *argv[]){	
-	void *buffer;
-	int sock = -1;
-	
-	buffer = malloc(BUF_SZ + 1024);
-	if (buffer == NULL) {
-		printf("malloc buffer error!\n");
+	fd = open_uevent_socket();
+	if (fd < 0) {
+		printf("error!\n");
 		return -1;
 	}
 	
-	sock = uevent_open_socket(BUF_SZ, true);
-	if (sock < 0) {
-		printf("uevent open socket error!\n");
-		free(buffer);
-		return -1;
-	}
-	
-	while (1) {
-        fd_set read_fds;
-        int rc = 0;
-        int max = -1;
-
-        FD_ZERO(&read_fds);
-
-        max = sock;
-        FD_SET(sock, &read_fds);
-        
-        if ((rc = select(max + 1, &read_fds, NULL, NULL, NULL)) < 0) {
-            if (errno == EINTR)
-                continue;
-            SLOGE("select failed (%s)", strerror(errno));
-            sleep(1);
-            continue;
-        } else if (!rc)
-            continue;
-
-        if (FD_ISSET(sock, &read_fds)) {
-			ssize_t sz;
-			
-			memset(buffer, 0, BUF_SZ);
-			sz = uevent_kernel_multicast_recv(sock, buffer, BUF_SZ);
-			if (sz > 0) {
-				uevent_parse_message(buffer, sz);
-			}
-		}
-	}
-	
-	close(sock);
-	free(buffer);
-	
-	return 0;
+	handle_device_fd(fd);
 }
