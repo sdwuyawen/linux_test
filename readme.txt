@@ -88,3 +88,8 @@
 	
 30). test_cast.cpp
 	测试static_cast, dynamic_cast, reinterpret_cast, const_cast
+	
+31). test_func_name.c
+	定义常量: #define _func	test_func
+	替换文件中_func所有标号, 编译出来的看到只有test_func。
+		
