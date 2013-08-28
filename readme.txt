@@ -97,5 +97,8 @@
     测试c中调用类中的接口（静态接口).	
 	如果要调用类实例的其他接口需要通过静态接口来调用才行。	
 	
-33). test_sizeof
+33). test_sizeof.c
     测试不同类型的sizeof
+
+34). test_access.c
+	测试access()函数和shell的颜色打印输出。
