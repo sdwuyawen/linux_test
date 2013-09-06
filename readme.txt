@@ -102,3 +102,6 @@
 
 34). test_access.c
 	测试access()函数和shell的颜色打印输出。
+	
+35). test_net.c
+	测试net event
