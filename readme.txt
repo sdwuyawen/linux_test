@@ -105,3 +105,8 @@
 	
 35). test_net.c
 	测试net event
+	
+36). test_file_mem.c
+	测试读写父子进程的内存(在父进程创建的内存(分别通过map file和malloc分配的内存))，
+	如果是map file, 父子进程可以读写相同的内存(不确定是否安全)。
+	如果是malloc, 父子进程读写相同的内存时, 会出现write copy问题。
