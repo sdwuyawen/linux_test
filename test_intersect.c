@@ -48,6 +48,7 @@ static int intersect(test_rect_t *src, test_rect_t *dst, test_rect_t *out)
 
 	return 0;
 }
+
 /*
  *
  */
