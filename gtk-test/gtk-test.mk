@@ -8,9 +8,8 @@ OBJS_C := $(foreach i,$(OBJS_C),$(TARGETS_OBJ_DIR)/$(i))
 OBJS := $(OBJS_C) $(OBJS_CXX)
 
 #=========================================================================	
-LOCAL_LDLIBS := 
-CFLAGS := `pkg-config --libs --cflags gtk+-2.0`
-LDFLAGS := `pkg-config --libs --cflags gtk+-2.0`
+CFLAGS := `pkg-config --cflags gtk+-2.0`
+LOCAL_LDLIBS := `pkg-config --libs gtk+-2.0`
 
 #=========================================================================	
 $(TARGETS): $(OBJS)
