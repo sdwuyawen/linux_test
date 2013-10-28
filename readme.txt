@@ -123,3 +123,6 @@
     
 40). test_threads_pool.c
     增加线程池的实现demo       
+    
+41). test_inherit.cpp
+	测试虚函数调用
