@@ -125,4 +125,8 @@
     增加线程池的实现demo       
     
 41). test_inherit.cpp
-	测试虚函数调用
+	测试继承，虚函数调用
+	
+42). test_getpwnam.c
+	获取用户属性
+	
