@@ -7,6 +7,6 @@ TARGETS_CXX := $(subst .cpp, ,$(SRCS_CXX))
 TARGETS_CXX :=  $(foreach i,$(TARGETS_CXX),$(TARGETS_DIR)/$(i))
 
 LOCAL_LDLIBS := -lm -lpthread -m32
-	
+
 #=========================================================================	
 include $(TARGETS_ROOT)/mkconfig	

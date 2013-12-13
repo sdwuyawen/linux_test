@@ -130,3 +130,5 @@
 42). test_getpwnam.c
 	获取用户属性
 	
+43). test_pid_ns.c
+    测试接口clone和namespace
