@@ -22,7 +22,7 @@ endif
 #=========================================================================	
 $(TARGETS): $(OBJS)
 	@echo "[LD] $(TARGETS)"
-	$(_Q)$(CC) $(LDFLAGS) -o $@ $< $(LOCAL_LDLIBS)	
+	$(_Q)$(CC) $(LDFLAGS) -o $@ $^ $(LOCAL_LDLIBS)	
 	
 #=========================================================================	
 include $(TARGETS_ROOT)/mkconfig	
