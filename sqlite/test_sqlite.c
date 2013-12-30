@@ -3,7 +3,14 @@
  * 		test_sqlite.c
  * 
  * 	@note :
- * 
+ * 		查看tvchannels所有内容
+ * 		./bin/test_sqlite sqlite/livetv.db 'select * from tvchannels'
+ * 		
+ * 		查看数据库里所有表的结构
+ * 		./bin/test_sqlite sqlite/livetv.db 'select * from sqlite_master where type="table";'
+ * 		
+ * 		./bin/test_sqlite sqlite/livetv.db 'select * from sqlite_master where type="table" and name="tvchannels";'
+ *  
  * 
  **/
 #include <stdio.h>
