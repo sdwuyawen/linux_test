@@ -16,7 +16,7 @@ export all-subdir-makefiles
 
 LOCAL_PATH := $(call my-dir)
 
-.PHONY: all clean
+.PHONY: all clean all_tests
 
 
 all clean:
@@ -27,3 +27,6 @@ all clean:
 		echo "`dirname $$file` - `basename $$file`"; \
 		make -C `dirname $$file` -f `basename $$file` $(MAKECMDGOALS); \
 	done
+
+all_tests:
+	
