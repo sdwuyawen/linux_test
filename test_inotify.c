@@ -18,6 +18,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
  */
+ /*
+  *		sudo ./bin/test_inotify
+  *  
+  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -68,7 +72,9 @@ static int checkDevice(const char *devicePath) {
     if(ioctl(fd, EVIOCGNAME(sizeof(buffer) - 1), &buffer) < 1) {
         fprintf(stderr, "could not get device name for %s, %s\n", devicePath, strerror(errno));
     } 
-
+    buffer[sizeof(buffer) - 1] = '\0';
+	printf("  name:       \"%s\"\n", buffer);
+    	
     // Get device driver version.
     int driverVersion;
     if(ioctl(fd, EVIOCGVERSION, &driverVersion)) {
@@ -76,6 +82,9 @@ static int checkDevice(const char *devicePath) {
         close(fd);
         return -1;
     }
+
+    printf("  driver:     v%d.%d.%d\n",
+        driverVersion >> 16, (driverVersion >> 8) & 0xff, driverVersion & 0xff);
 
     // Get device identifier.
     struct input_id inputId;
@@ -89,12 +98,22 @@ static int checkDevice(const char *devicePath) {
     if(ioctl(fd, EVIOCGPHYS(sizeof(buffer) - 1), &buffer) < 1) {
         fprintf(stderr, "could not get location for %s, %s\n", devicePath, strerror(errno));
     } 
-
+    buffer[sizeof(buffer) - 1] = '\0';
+	printf("  location:   \"%s\"\n", buffer);    
+	
     // Get device unique id.
     if(ioctl(fd, EVIOCGUNIQ(sizeof(buffer) - 1), &buffer) < 1) {
         fprintf(stderr, "could not get idstring for %s, %s\n", devicePath, strerror(errno));
     } 
+    buffer[sizeof(buffer) - 1] = '\0';
+	printf("  unique id:  \"%s\"\n", buffer);
     
+    printf("  bus:        %04x\n"
+         "  vendor      %04x\n"
+         "  product     %04x\n"
+         "  version     %04x\n",
+        inputId.bustype, inputId.vendor, inputId.product, inputId.version);
+                
     close(fd);
     
     return 0;
