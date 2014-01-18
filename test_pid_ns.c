@@ -88,6 +88,7 @@ int clone(int (*fn)(void *), void *child_stack, int flags, void *arg);
 #include <sys/types.h>
 #include <unistd.h>
 #include <sched.h>
+#include <linux/sched.h>
  
 static int fork_child(void *arg)
 {

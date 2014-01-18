@@ -39,8 +39,14 @@ TARGETS_CXX := $(subst .cpp, ,$(SRCS_CXX))
 TARGETS_CXX :=  $(foreach i,$(TARGETS_CXX),$(TARGETS_DIR)/$(i))
 
 #=========================================================================
-LOCAL_CFLAGS := -I/lib/modules/`uname -r`/build/include -D_GNU_SOURCE
-LOCAL_LDLIBS := -lpthread -m32
+LOCAL_KERNEL_NAME := $(shell uname -r)
+#LOCAL_CFLAGS := -I/lib/modules/${LOCAL_KERNEL_NAME}/build/include -D_GNU_SOURCE
+#LOCAL_CFLAGS += -I/lib/modules/${LOCAL_KERNEL_NAME}/build/arch/x86/include
+
+LOCAL_CFLAGS += -D_GNU_SOURCE
+
+LOCAL_LDLIBS := -lpthread
+LOCAL_LDLIBS += -m32
 
 CFLAGS += $(LOCAL_CFLAGS)
 #=========================================================================

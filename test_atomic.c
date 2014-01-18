@@ -10,7 +10,9 @@
 typedef int pa_bool_t;
 
 #define __GNC__
+#ifndef __x86_64__
 #define __x86_64__
+#endif
 
 #if defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
 //#warn "The native atomic operations implementation for AMD64 has not been tested thoroughly. libatomic_ops is known to not work properly on AMD64 and your gcc version is too old for the gcc-builtin atomic ops support. You have three options now: test the native atomic operations implementation for AMD64, fix libatomic_ops, or upgrade your GCC."

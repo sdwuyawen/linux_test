@@ -37,8 +37,6 @@
 //#include <sys/limits.h>
 #include <linux/input.h>
 
-#include <linux/input.h>
-
 /**
  **/
 #define EPOLL_SIZE_HINT 		8

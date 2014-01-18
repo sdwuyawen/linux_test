@@ -39,6 +39,10 @@
 #include <sys/param.h>
 #include <linux/major.h>
 
+#ifndef CONFIG_HZ
+#define CONFIG_HZ 250
+#endif
+
 #ifndef IDE_DISK_MAJOR
 #define IDE_DISK_MAJOR(M) ((M) == IDE0_MAJOR || (M) == IDE1_MAJOR || \
 			   (M) == IDE2_MAJOR || (M) == IDE3_MAJOR || \
