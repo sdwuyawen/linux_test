@@ -132,3 +132,6 @@
 	
 43). test_pid_ns.c
     测试接口clone和namespace
+
+44). test_sock_pair0.c test_sock_pair.c
+    测试socketpair. 创建的socketpair的句柄都有读写权限.

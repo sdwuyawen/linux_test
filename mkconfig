@@ -4,17 +4,17 @@ CFLAGS += $(LOCAL_CFLAGS)
 #=========================================================================
 $(TARGETS_C): $(TARGETS_DIR)/% : %.c
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	@echo -e "\033[34;1m[CC] $< -> $@ \033[0m"
+	@$(ECHO) "\033[34;1m[CC] $< -> $@ \033[0m"
 	$(_Q)$(CC) $(CFLAGS) -o $@ $< $(LOCAL_LDLIBS)
 
 $(TARGETS_CXX): $(TARGETS_DIR)/% : %.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	@echo -e "\033[34;1m[CXX] $< -> $@ \033[0m"
+	@$(ECHO) "\033[34;1m[CXX] $< -> $@ \033[0m"
 	$(_Q)$(CXX) $(CFLAGS) -o $@ $< $(LOCAL_LDLIBS)
 
 $(TARGETS_OBJ_DIR)/%.o : %.c
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	@echo -e "\033[34;1m[CC] $< -> $@ \033[0m"
+	@$(ECHO) "\033[34;1m[CC] $< -> $@ \033[0m"
 	$(_Q)$(CC) $(CFLAGS) -c -o $@ $< 
 
 $(TARGETS_OBJ_DIR)/%.o : %.cpp
@@ -24,7 +24,7 @@ $(TARGETS_OBJ_DIR)/%.o : %.cpp
 
 #=========================================================================
 all_tests: $(TARGETS_C) $(TARGETS_CXX) $(TARGETS)
-	@echo -e "\033[35;1m[${PWD}] \033[36;1mOK!\033[0m"
+	@$(ECHO) "\033[35;1m[${PWD}] \033[36;1mOK!\033[0m"
 	
 clean_tests:
 	@rm -f $(TARGETS_C) $(TARGETS_CXX) $(TARGETS)

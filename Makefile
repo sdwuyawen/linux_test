@@ -1,6 +1,7 @@
 #=========================================================================
 CC := gcc
 CXX := g++ 
+ECHO := echo -e
 
 ifeq ($(V), 1)
 _Q :=
@@ -16,6 +17,7 @@ TARGETS_OBJ_DIR := .obj
 #=========================================================================
 export CC
 export CXX
+export ECHO
 export _Q
 export TARGETS_ROOT
 export TARGETS_DIR
@@ -48,6 +50,8 @@ LOCAL_CFLAGS += -D_GNU_SOURCE
 LOCAL_LDLIBS := -lpthread
 LOCAL_LDLIBS += -m32
 
+LOCAL_ROOT_DIR := $(shell pwd)
+
 CFLAGS += $(LOCAL_CFLAGS)
 #=========================================================================
 MK_FILE_LIST := $(shell find $(TARGETS_ROOT) -name *.mk)
@@ -55,24 +59,22 @@ MK_FILE_LIST := $(shell find $(TARGETS_ROOT) -name *.mk)
 #=========================================================================
 all: debug $(TARGETS_C) $(TARGETS_CXX)
 	@for file in $(MK_FILE_LIST) ; do \
-		pushd .; \
 		cd `dirname $$file`; \
-		echo -e "\033[35;1m[`dirname $$file`] \033[36;1m`basename $$file` \033[0m" ; \
+		$(ECHO) "\033[35;1m[`dirname $$file`] \033[36;1m`basename $$file` \033[0m" ; \
 		$(MAKE) -f `basename $$file` all_tests; \
-		popd; \
+		cd $(LOCAL_ROOT_DIR); \
 	done
 	@echo "=========== build tests OK ==========="
 	
 debug:
 
 clean:
-	@echo -e "\033[35;1m=== clean targets === \033[0m" ;
+	@$(ECHO) "\033[35;1m=== clean targets === \033[0m" ;
 	@for file in $(MK_FILE_LIST) ; do \
-		pushd .; \
 		cd `dirname $$file`; \
-		echo -e "\033[35;1m[`dirname $$file`] clean \033[0m" ; \
+		$(ECHO) "\033[35;1m[`dirname $$file`] clean \033[0m" ; \
 		$(MAKE) -f `basename $$file` clean_tests; \
-		popd; \
+		cd $(LOCAL_ROOT_DIR); \
 	done	
 	@rm -rf bin 
 

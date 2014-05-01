@@ -8,8 +8,10 @@
 	 如果once初值设为1，则由于所有pthread_once()都必须等待其中一个激发"已执行一次"信号，因此所有pthread_once ()都会陷入永久的等待中；
 	 如果设为2，则表示该函数已执行过一次，从而所有pthread_once()都会立即返回0。
 **/
-#include<iostream>
-#include<pthread.h>
+#include <iostream>
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
 
 using namespace std;
 
