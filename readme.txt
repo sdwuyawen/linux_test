@@ -135,3 +135,51 @@
 
 44). test_sock_pair0.c test_sock_pair.c
     测试socketpair. 创建的socketpair的句柄都有读写权限.
+
+45). test_coroutine.c
+	实现yield功能
+	
+46). sock_br_server.c, sock_br_client.c
+	实现通过socket AF_INET来进程通信
+
+47). sock_local_server.c, sock_local_client.c
+	实现通过socket AF_LOCAL来进程通信
+	命名socket。这里面有一个很关键的东西，socket进程通信命名方式有两种。
+	(1).普通的命名，socket会根据此命名创建一个同名的socket文件，客户端连接的时候通过读取该socket文件连接到socket服务端。这种方式的弊端是服务端必须对socket文件的路径具备写权限，
+	客户端必须知道socket文件路径，且必须对该路径有读权限。
+	(2).抽象命名空间，这种方式不需要创建socket文件，只需要命名一个全局名字，即可让客户端根据此名字进行连接。后者的实现过程与前者的差别是，
+	后者在对地址结构成员sun_path数组赋值的时候，必须把第一个字节置0，即sun_path[0] = 0，下面用代码说明：
+
+	第一种方式：
+    //name the server socket   
+    server_addr.sun_family = AF_UNIX;  
+    strcpy(server_addr.sun_path,SERVER_NAME);  
+    server_len = sizeof(struct sockaddr_un);  
+    client_len = server_len;  
+
+
+	第二种方式：
+    //name the socket  
+    server_addr.sun_family = AF_UNIX;  
+    server_addr.sun_path[0] = 0;  
+    strcpy(server_addr.sun_path+1, SERVER_NAME);  
+    //server_len = sizeof(server_addr);  
+    server_len = strlen(SERVER_NAME) + offsetof(struct sockaddr_un, sun_path) + 1;  
+
+	其中，offsetof函数在#include <stddef.h>头文件中定义。因第二种方式的首字节置0，我们可以在命名字符串SERVER_NAME前添加一个占位字符串，例如:
+    #define SERVER_NAME @socket_server  
+    
+	int makeAddr(const char* name, struct sockaddr_un* pAddr, socklen_t* pSockLen)
+	{
+		int nameLen = strlen(name);
+		if (nameLen >= (int) sizeof(pAddr->sun_path) -1)  /* too long? */
+			return -1;
+		pAddr->sun_path[0] = '\0';  /* abstract namespace */
+		strcpy(pAddr->sun_path+1, name);
+		pAddr->sun_family = AF_UNIX;
+		*pSockLen = 1 + nameLen + offsetof(struct sockaddr_un, sun_path);
+		return 0;
+	}
+	
+	像下面这样使用这个函数:
+	makeAddr("server_socket", &server_addr, &server_len);  
