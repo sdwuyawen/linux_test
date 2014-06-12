@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 a="one,two,three,four"
 echo "substr = ${a:0:3}"
 echo "substr1 = ${a:3}"
