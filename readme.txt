@@ -183,3 +183,5 @@
 	
 	像下面这样使用这个函数:
 	makeAddr("server_socket", &server_addr, &server_len);  
+	
+48). test_setsid.c 
