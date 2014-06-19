@@ -1,0 +1,16 @@
+1. 
+  1).选项需要后跟参数，在选项后面加":"	
+  
+2. 测试命令行
+  1). 
+	./shell/options -h
+	来打印帮助信息
+
+  2). 
+	./shell/options -z
+	遇到不支持的选项，脚本同样可以给出提示，并打印帮助信息。
+
+  3). 
+	./shell/options -d bar -c chu -b man -a foo example1.txt example2.txt	
+	最后，getopts可以以任意的顺序处理你给的命令行参数。唯一的限制是你要处理的文件必须放在所有参数的最后。
+
