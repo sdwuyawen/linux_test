@@ -30,8 +30,8 @@ $(TARGETS): $(TARGETS_LIB) $(TARGETS_1) $(OBJS)
 
 $(TARGETS_1): $(OBJS1)
 	@echo "[LD] $@"
-	$(_Q)#$(CC) $(LDFLAGS) -o $@ $(OBJS1) $(TARGETS_LIB) $(LOCAL_LDLIBS)	
-	$(_Q)$(CC) $(LDFLAGS) -o $@ $(OBJS1) $(LOCAL_LDLIBS)	
+	$(_Q)$(CC) $(LDFLAGS) -o $@ $(OBJS1) $(TARGETS_LIB) $(LOCAL_LDLIBS)	
+	$(_Q)#$(CC) $(LDFLAGS) -o $@ $(OBJS1) $(LOCAL_LDLIBS)	
 	
 $(TARGETS_LIB): $(LIB_OBJS_C)
 	@echo "[LD] $(TARGETS_LIB)"

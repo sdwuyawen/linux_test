@@ -12,9 +12,12 @@
 
 #include "lib_so.h"
 
-int main(int argc, char *argv[]) {		
+int main(int argc, char *argv[]) {			
+	printf("%s : %d\n", argv[0], libtest_get_cnt());
 	
-	//printf("%s : %d\n", argv[0], libtest_get_cnt());
+	//while (1) {	//为了查看maps
+		//sleep(1);
+	//}
 	
 	return 0;
 }
