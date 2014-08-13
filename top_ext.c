@@ -70,6 +70,7 @@ struct proc_info {
     long unsigned delta_time;
     long vss;
     long rss;
+    int cpu;
     int prs;
     int num_threads;
     char policy[POLICY_NAME_LEN];    
@@ -402,8 +403,8 @@ static int read_stat(char *filename, struct proc_info *proc) {
     /* Scan rest of string. */
     sscanf(close_paren + 1, " %c %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d "
                  "%lu %lu %*d %*d %*d %*d %*d %*d %*d %lu %ld "
-                 "%*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %d",
-                 &proc->state, &proc->utime, &proc->stime, &proc->vss, &proc->rss, &proc->prs);
+                 "%*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %d %d",
+                 &proc->state, &proc->utime, &proc->stime, &proc->vss, &proc->rss, &proc->cpu, &proc->prs);
 
     return 0;
 }
@@ -632,9 +633,9 @@ static void print_procs(void) {
             total_delta_time);
     printf("\n");
     if (!threads) {
-        printf("%5s %2s %4s %1s %5s %9s %9s %3s %-8s %s\n", "PID", "PR", "CPU%", "S", "#THR", "VSS", "RSS", "PCY", "UID", "Name");        
+        printf("%5s %2s %4s %1s %1s %5s %9s %9s %3s %-8s %s\n", "PID", "PR", "CPU%", "P", "S", "#THR", "VSS", "RSS", "PCY", "UID", "Name");        
     } else {
-        printf("%5s %5s %2s %4s %1s %9s %9s %3s %-8s %-15s %s\n", "PID", "TID", "PR", "CPU%", "S", "VSS", "RSS", "PCY", "UID", "Thread", "Proc");
+        printf("%5s %5s %2s %4s %1s %1s %9s %9s %3s %-8s %-15s %s\n", "PID", "TID", "PR", "CPU%", "P", "S", "VSS", "RSS", "PCY", "UID", "Thread", "Proc");
 	}
 
     for (i = 0; i < num_new_procs; i++) {
@@ -657,7 +658,7 @@ static void print_procs(void) {
             group_str = group_buf;
         }
         if (!threads) {
-            printf("%5d %2d %3ld%% %c %5d %8ldK %8ldK %3s %-8.8s %s\n", proc->pid, proc->prs, proc->delta_time * 100 / total_delta_time, proc->state, proc->num_threads,
+            printf("%5d %2d %3ld%% %1d %c %5d %8ldK %8ldK %3s %-8.8s %s\n", proc->pid, proc->prs, proc->delta_time * 100 / total_delta_time, proc->cpu, proc->state, proc->num_threads,
                 proc->vss / 1024, proc->rss * getpagesize() / 1024, proc->policy, user_str, proc->name[0] != 0 ? proc->name : proc->tname);
                 
             if (is_show_files) {
@@ -665,7 +666,7 @@ static void print_procs(void) {
 			}    
                 
         } else {
-            printf("%5d %5d %2d %3ld%% %c %8ldK %8ldK %3s %-8.8s %-15s %s\n", proc->pid, proc->tid, proc->prs, proc->delta_time * 100 / total_delta_time, proc->state,
+            printf("%5d %5d %2d %3ld%% %1d %c %8ldK %8ldK %3s %-8.8s %-15s %s\n", proc->pid, proc->tid, proc->prs, proc->delta_time * 100 / total_delta_time, proc->cpu, proc->state,
                 proc->vss / 1024, proc->rss * getpagesize() / 1024, proc->policy, user_str, proc->tname, proc->name);
             
             if (is_show_stack) {    
