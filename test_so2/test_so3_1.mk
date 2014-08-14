@@ -12,16 +12,16 @@ LIB_OBJS_C := $(subst .c,.o,$(LIB_SRCS_C))
 LIB_OBJS_C := $(foreach i,$(LIB_OBJS_C),$(TARGETS_OBJ_DIR)/$(i))
 
 #=========================================================================	
-#CFLAGS += -fPIC
+CFLAGS += -fPIC
 
 LOCAL_LDLIBS := -ldl
 LOCAL_LIB_LDLIBS :=
 
 #=========================================================================	
+$(TARGETS): $(TARGETS_LIB)
 #$(TARGETS): $(TARGETS_LIB) $(OBJS) 
-$(TARGETS): $(OBJS) 
-	@echo "[LD] $@"
-	$(_Q)$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LOCAL_LDLIBS)		
+#	@echo "[LD] $@"
+#	$(_Q)$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LOCAL_LDLIBS)		
 	
 $(TARGETS_LIB): $(LIB_OBJS_C)
 	@echo "[LD] $(TARGETS_LIB)"

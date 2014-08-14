@@ -9,7 +9,9 @@
 
 int g_test_cnt = 0;
 
-void (*test_func_ptr)(void);
+typedef void (*test_func_t)(void);
+
+test_func_t test_func_ptr;
 
 /*
  *

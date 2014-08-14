@@ -2,6 +2,13 @@
  *	@filename :
  * 		test_so3.c
  * 
+ *  @note :
+ * 		如果test_func_ptr同时定义在libtest_so3.c test_so3.c中， 会造成libtest_so3中的调用到test_so3.c的test_func_ptr,
+ * 		(用gcc-4.8.2没有这个问题，但是用gcc-4.6.3就有这个问题)
+ * 		解决方法：
+ * 		(1). 把test_so3.c中的test_func_ptr定义成static
+ * 		(2). 编译test_so3.c时把-fPIC去掉
+ * 
  **/
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,9 +19,9 @@
 
 typedef void (*test_func_t)(void);
 
-void (*main_xxx_func)(void);
-
-void (*test_func_ptr)(void);
+//test_func_t test_func_ptr;
+static test_func_t test_func_ptr;
+static test_func_t main_xxx_func;
 
 int main(int argc, char *argv[]) {		
 	int ret = 0;
@@ -25,6 +32,8 @@ int main(int argc, char *argv[]) {
 	unsigned int *addr;
 	void *handle = NULL;
 	char *error;
+	
+	printf("test_func_ptr = %p\n", &test_func_ptr);
 	
 	printf("lib path : %s\n", lib_path);
 	
