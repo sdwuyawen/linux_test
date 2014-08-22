@@ -78,5 +78,21 @@ clean:
 	done	
 	@rm -rf bin 
 
+mk-%:
+	@for file in $(shell find $(patsubst mk-%,%,$@) -name *.mk) ; do \
+		cd `dirname $$file`; \
+		$(ECHO) "\033[35;1m[`dirname $$file`] \033[36;1m`basename $$file` \033[0m" ; \
+		$(MAKE) -f `basename $$file` all_tests; \
+		cd $(LOCAL_ROOT_DIR); \
+	done
+		
+clean-%:
+	@for file in $(shell find $(patsubst clean-%,%,$@) -name *.mk) ; do \
+		cd `dirname $$file`; \
+		$(ECHO) "\033[35;1m[`dirname $$file`] clean \033[0m" ; \
+		$(MAKE) -f `basename $$file` clean_tests; \
+		cd $(LOCAL_ROOT_DIR); \
+	done
+	
 #=========================================================================
 include ./mkconfig
