@@ -30,6 +30,8 @@ typedef struct {
 #define PA_INFO_START 1536
 #define PA_SIZE       49152
 
+#define PA_FILENAME	  "/tmp/__properties__"	
+
 /**
  **/
 static int init_workspace(workspace_t *w, size_t size)
@@ -40,7 +42,7 @@ static int init_workspace(workspace_t *w, size_t size)
         /* dev is a tmpfs that we can use to carve a shared workspace
          * out of, so let's do that...
          */
-    fd = open("/dev/__properties__", O_RDWR | O_CREAT, 0600);
+    fd = open(PA_FILENAME, O_RDWR | O_CREAT, 0600);
     if (fd < 0)
         return -1;
 
@@ -53,11 +55,11 @@ static int init_workspace(workspace_t *w, size_t size)
 
     close(fd);
 
-    fd = open("/dev/__properties__", O_RDONLY);
+    fd = open(PA_FILENAME, O_RDONLY);	//使子进程只有读权限
     if (fd < 0)
         return -1;
 
-    unlink("/dev/__properties__");
+    unlink(PA_FILENAME);
 
     w->data = data;
     w->size = size;
