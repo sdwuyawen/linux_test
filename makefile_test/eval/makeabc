@@ -1,0 +1,15 @@
+OBJ=a.o b.o c.o 
+
+#.PHONY:all
+#all:libabc.a
+
+%.o:%.c
+	@gcc -c $< -o $@
+	@printf "cc %s  => %s\n" $< $@
+
+libabc.a:$(OBJ)
+	ar -rcs libabc.a $(OBJ)
+	
+clean:
+	-rm *.o
+	-rm *.a		

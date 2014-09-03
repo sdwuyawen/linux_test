@@ -1,0 +1,7 @@
+OBJ=d.o 
+
+%.o:%.cpp
+	g++ -c $< -o $@
+
+all:$(OBJ)
+	ar -rcs libd.a $(OBJ)	

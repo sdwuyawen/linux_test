@@ -1,0 +1,28 @@
+1.编译
+make -f makeabc
+make -f maked
+
+make
+
+make clean
+
+2.如果在Makefile中出现同名的目标， 依赖的部分会合并处理，但是目标只执行最后的。
+测试：增加
+$(PROGRAMS): test
+test:
+	@echo "hell world"
+	
+输出
+server
+client
+cc    -c -o server.o server.c
+cc    -c -o server_priv.o server_priv.c
+cc    -c -o server_access.o server_access.c
+hell world
+server
+-labc -ld
+server.o server_priv.o server_access.o
+cc   server.o server_priv.o server_access.o libabc.a libd.a test  -o server
+cc: error: test: 没有那个文件或目录
+make: *** [server] 错误 1
+

@@ -1,0 +1,3 @@
+
+$(eval xd:xd.c a.c)
+

@@ -1,0 +1,9 @@
+
+OBJ=a.o b.o c.o d.o main.o
+
+define MA
+main:$(OBJ)
+	gcc  -g -o main $$(OBJ)
+endef	
+
+$(eval $(call MA) )
