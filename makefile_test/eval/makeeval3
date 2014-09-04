@@ -1,9 +1,20 @@
 
-OBJ=a.o b.o c.o d.o main.o
+OBJ_DIR := .obj
+
+OBJ=$(OBJ_DIR)/a.o $(OBJ_DIR)/b.o $(OBJ_DIR)/c.o $(OBJ_DIR)/d.o $(OBJ_DIR)/main.o
 
 define MA
 main:$(OBJ)
-	gcc  -g -o main $$(OBJ)
+	@[ -e $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR)
+	gcc  -g -o $(OBJ_DIR)/main $$(OBJ)
 endef	
 
-$(eval $(call MA) )
+$(eval $(call MA))
+
+$(OBJ_DIR)/%.o:%.cpp
+	@@[ -e $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR)
+	g++ -c $< -o $@
+
+$(OBJ_DIR)/%.o : %.c
+	@[ -e $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR)
+	gcc -c -o $@ $<

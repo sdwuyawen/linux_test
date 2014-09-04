@@ -7,6 +7,9 @@
 #		$(wildcard, <list>)是返回list中存在的路径(文件)	
 #	3). 
 #		eval函数 : 在当前位置插入参数内容
+#	4). @$(eval R := 5)
+#		@echo $R
+#		输出：5
 #					
 ##
 k = $(2)$(1) 
@@ -28,6 +31,8 @@ all: test foo
 
 test:
 	@echo "test"
+	@$(eval R := 5)
+	@echo $R
 
 define func
 .PHONY: $1

@@ -6,7 +6,7 @@ make
 
 make clean
 
-2.如果在Makefile中出现同名的目标， 依赖的部分会合并处理，但是目标只执行最后的。
+2.如果在Makefile中出现同名的目标， 依赖的会合并处理，但是目标只执行最后的。
 测试：增加
 $(PROGRAMS): test
 test:

@@ -3,6 +3,4 @@ aa:aa.c
 	gcc  -g -o aa aa.c
 endef	
 
-
-
 $(eval $(call MA) )

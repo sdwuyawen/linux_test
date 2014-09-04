@@ -1,15 +1,24 @@
-OBJ=a.o b.o c.o 
 
-#.PHONY:all
-#all:libabc.a
+OBJ_DIR := .obj
+OBJ=$(OBJ_DIR)/a.o $(OBJ_DIR)/b.o $(OBJ_DIR)/c.o 
 
-%.o:%.c
+TARGET := $(OBJ_DIR)/libabc.a
+
+.PHONY:all
+all:$(TARGET)
+
+$(OBJ_DIR)/%.o:%.cpp
+	@@[ -e $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR)
+	g++ -c $< -o $@
+	
+$(OBJ_DIR)/%.o:%.c
+	@[ -e $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR)
 	@gcc -c $< -o $@
-	@printf "cc %s  => %s\n" $< $@
 
-libabc.a:$(OBJ)
-	ar -rcs libabc.a $(OBJ)
+$(TARGET):$(OBJ)
+	@[ -e $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR)
+	ar -rcs $(TARGET) $(OBJ)
 	
 clean:
-	-rm *.o
-	-rm *.a		
+	-rm $(OBJ)
+	-rm $(TARGET)
