@@ -1,6 +1,6 @@
 本文也即《Learning the bash Shell》3rd Edition的第四章 Basic Shell Programming之读书笔记之二，但我们将不限于此。
 
-String操作
+1.String操作
 　　在下面的描述中，":"是可以删除的，存在是表示“存在但不允许为null”，不带“:”表示“存在”，即允许为空：
 	${varname:-word} ：如果varname存在并且不为null，返回varname的值，否则返回word。用于当某个变量不存在或没定义时返回一个缺省的值。
 		如果为${varname-word}，则当varname存在，可以为null，例如我们定义myparam=，返回varname的值，否则返回word。
@@ -44,7 +44,7 @@ String操作
     #sort是个排序的命令，-r表示reverse的顺序，即从大到小，-n表示将第一个参数视为数字，而不是character的方式。| 表示pipe输出，head -N 表示显示头N行。
     sort -nr $filename | head -$howmany
 
-样式匹配
+1).样式匹配
 　　Pattern可以包含wildcard，操作如下：
 
     ${variable#pattern} ：如果变量的开始匹配pattern，则去除最小匹配，返回后面的字符，如果不匹配，给出变量。
@@ -83,10 +83,10 @@ String操作
 
 　　例子，echo ${aa//+(abc|hello)/ALICE}的值为ALICE.xyz.ALICE.world
 
-长度操作
+2).长度操作
 　　${#varname} ，例如上面的例子中${#aa}为19。
 
-command substutuion:使用命令的输入作为赋值
+3).command substutuion:使用命令的输入作为赋值
 　　可以通过command substitution 来设置参数的值。允许将命令的输出作为变量的赋值。在makefile的编写中，我们曾使用类似的方式即`pkg-config clutter-1.0 --libs`,
 	这里用``包含的内容就是命令执行的输出结果。但是这种方式是为了和旧版本兼容，可以使用$(UNIX command )的方式。这种方式可以嵌套的，
 	及里面的UNIX command也可以是command substitution。但是使用``的方式无法实现嵌套，下面是一些例子：
@@ -96,7 +96,7 @@ command substutuion:使用命令的输入作为赋值
     type -all -path command给出命令的路径，如果我们需要仔细查看相关文件属性，可以使用ls -l $(type -all -path vi)。
     vi $(grep -l 'command substitution' ch*)，表示编辑当前目录开ch大头的含有'command substitution'内容的文件，其中-来表示，只显示目标文件。
 
-cut和awk的用法:获取列信息
+4).cut和awk的用法:获取列信息
 　　这两个适用于获得列的方式，旧的BSD系统不提供cut，需要使用awk来替代。
 	使用方式cut –fN –dC filename或者awk –FC '{print $N}' filename。
 	其中N表示列号，C表示分割符号，缺省为tab。如果我们使用空格，可以为’ ‘，如果使用|等或产生奇异的特殊符合用/|的方式。
@@ -108,7 +108,7 @@ cut和awk的用法:获取列信息
 	例如
 		who | cut –c10-15
 
-一个stack的小例子
+5).一个stack的小例子
 　　下面我们给出一个FILO的stack例子，用来复习string的操作。
 
     push_func()
@@ -134,3 +134,6 @@ cut和awk的用法:获取列信息
     pop_func
     pop_func
     pop_func
+
+
+
