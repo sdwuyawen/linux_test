@@ -21,6 +21,7 @@ LOCAL_PATH := $(call my-dir)
 
 all clean:
 	@$(call debug_out)
+	@echo "level = $(MAKELEVEL)"
 	@echo "DIR = $(LOCAL_PATH)"
 	@echo $(all-subdir-makefiles)
 	@for file in $(all-subdir-makefiles); do \

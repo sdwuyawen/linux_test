@@ -5,9 +5,15 @@
 #	&& 前面输出正常(返回0)会执行下&&后面的命令
 #   || 前面输出正常(返回0)会执行下一行命令，不执行||后面的命令；不正常，则执行后面的命令
 #
+_Y="\\033[33m"
+_N="\\033[m"
+
+do_cmd() {
+	printf "${_Y}%s${_N}\n" "$1"
+}
 
 do_cmd1() {
-	echo "hello1"
+	echo "hello1"	
 	return 0
 }
 
@@ -48,6 +54,8 @@ strtok() { # <string> { <variable> [<separator>] ... }
 
 	return $count
 }
+
+do_cmd "hello world"
 
 cmd1_ret=`do_cmd1`
 #显示hello1

@@ -113,10 +113,23 @@ $(lastword $(MAKEFILE_LIST))为mk1/Android.mk
 	执行完后，整个$(eval include $(1))表达式返回值为空。这样解析错误解决了，
 	而且import_target的返回结果又正好是_PREFIXID的值。	
 			
-3). make -d或make --debug=<opt> 来查看makefile的处理过程
+3. make -d或make --debug=<opt> 来查看makefile的处理过程
 	opt : 
 		b for basic debugging, 
 		v for more verbose basic debugging, 
 		i for showing implicit rules, 
 		j for details on invocation of commands, 
 		m for debugging while remaking makefiles
+
+4.
+  MAKEFILE_LIST
+	make 程序在读取多个 makefile 文件时,包括由环境变量“MAKEFILES”指定, 命令行指定, 当前工作下的默认的以及使用指示符“include”指定包含的,
+	在对这些文件进行解析执行之前make读取的文件名将会被自动依次追加到变量“MAKEFILE_LIST”的定义域中。
+	这样我们就可以通过测试此变量的最后一个字来获取当前 make 程序正在处理的makefile文件名。具体地说就是在一个makefile文件中如果使用指示符“include”包
+	含另外一个文件之后, “MAKEFILE_LIST”变量的最后一个字只可能是指示符“include”指定所要包含的那个文件的名字。一个 makefile 的内容如下:
+	
+	name1 := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))	
+  
+  MAKELEVEL	
+	变量“MAKELEVEL”代表了调用的深度
+	
