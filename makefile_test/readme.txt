@@ -133,3 +133,4 @@ $(lastword $(MAKEFILE_LIST))为mk1/Android.mk
   MAKELEVEL	
 	变量“MAKELEVEL”代表了调用的深度
 	
+5. 在include <file>时, 如果makefile中有目标<file>， 就会执行目标<file>				
