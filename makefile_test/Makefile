@@ -14,19 +14,26 @@
 #		(<命令行>)或+(<命令行>), make会做两次解析, 所以有些变量需要$$才行。
 #	6). 在include <file>时, 如果makefile中有目标<file>， 就会执行目标<file>		
 #	7). shexport命令输出全局变量		
+#	8). 导入shell命令
+#   9). $(call Package/test/description), 会在当前展开Package/test/description, 所以要注意多行语句(echo).
+#		通过 call 函数可以将一个变量定义为一个复杂的表达式, 格式如下：
+#		$(call VAR, 参数1, 参数2,...)
+#		call 函数可以将 "参数1“ ，”参数2“ 传递到VAR中, VAR根据传递进来的参数进行展开成一个完整的表达式.
 ##
 k = $(2)$(1) 
 map = $(foreach a,$(2),$(call $(1),$(a),good-)) 
 o = $(call map,k,are you ok) 
-
+$(info o:$(o))
 pathsearch = $(firstword $(wildcard $(addsuffix /$(1),$(subst :, ,$(PATH)))))     
 LS := $(call pathsearch,ls)
+
+export SHELL=/usr/bin/env bash -c '. shell.sh; eval "$$2"' --
 
 NO_TRACE_MAKE := make
 
 .PHONY: all test stamp
 
-all: test foo stamp test1
+all: test foo stamp test1 test2 test3
 	@echo "all"
 	@echo "$(o)"
 	@echo $(PATH)
@@ -42,7 +49,7 @@ test:
 define func
 .PHONY: $1
 $1:
-	@echo "at $1"
+	@echo "at $$@"
 endef
 
 $(eval $(call func,foo))
@@ -50,6 +57,7 @@ $(eval $(call func,foo))
 stamp::
 	@+( \
 		echo "stamp 1"; \
+		echo "make test"; \
 		$(NO_TRACE_MAKE) test; \
 		MD5SUM=$$(cat Makefile | (md5sum || md5) 2>/dev/null | awk '{print $$1}'); \
 		echo "md5 of Makefile : $$MD5SUM"; \
@@ -65,7 +73,8 @@ export $(call shvar,$(1))
 endef
 	
 define Package/test/description
-	Voice Access mini-PBX Demo Application
+	1.Voice Access mini-PBX Demo Application
+#	2.Voice Access mini-PBX Demo Application
 endef
 
 define Package/test/config
@@ -107,8 +116,11 @@ endef
 
 stamp::
 	@$(eval $(call BuildPackage,test))
-	@$(info Config : $(V_Package_test_config))
-	@$(info Description : $(V_Package_test_description))
+	@echo $(call Package/test/description)
+	@echo "Description:"; \
+	getvar $(call shvar,Package/test/description);
+	@echo "Config :"; \
+	getvar $(call shvar,Package/test/config);
 	@echo "stamp 2"	
 			
 .obj/file.mk:
@@ -121,3 +133,10 @@ stamp::
 
 -include .obj/file.mk	
 #include也是作为依赖
+
+#导入两次build-binary.mk
+#产生test2和test3目标依赖
+$(foreach __pass2_module,test2 test3,\
+    $(eval LOCAL_MODULE := $(__pass2_module))\
+    $(eval include build-binary.mk)\
+)
