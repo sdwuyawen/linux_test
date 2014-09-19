@@ -40,3 +40,21 @@
 [ STRING1 = STRING2 ] 	如果两个字符串相同则为真
 [ STRING1 != STRING2 ] 	如果字符串不相同则为真
 [ ARG1 OP ARG2 ] 		ARG1和ARG2应该是整数或者取值为整数的变量，OP是-eq（等于）-ne（不等于）-lt（小于）-le（小于等于）-gt（大于）-ge（大于等于）之中的一个
+
+4. set
+   set [--abefhkmnptuvxBCEHPT] [-o option] [arg ...]
+   set [+abefhkmnptuvxBCEHPT] [+o option] [arg ...]
+   set -e表示一旦脚本中有命令的返回值为非0，则脚本立即退出，后续命令不再执行;
+   set -o pipefail表示在管道连接的命令序列中，只要有任何一个命令返回非0值，则整个管道返回非0值，即使最后一个命令返回0.
+   
+   范例: ./testset.sh
+   输出：
+disable exit on non-zero return status and pipefail track
+./testset.sh: 行 6: 1/0: 除0 （错误符号是 "0"）
+return status = 0
+disable exit on non-zero return status but enable pipefail track
+./testset.sh: 行 12: 1/0: 除0 （错误符号是 "0"）
+return status = 1
+enable exit on non-zero return status and pipefail track
+./testset.sh: 行 18: 1/0: 除0 （错误符号是 "0"）
+   

@@ -120,7 +120,11 @@ $(lastword $(MAKEFILE_LIST))为mk1/Android.mk
 		i for showing implicit rules, 
 		j for details on invocation of commands, 
 		m for debugging while remaking makefiles
-
+		p for Print the data base (rules and variable values) that results from reading the makefiles; 
+			  then execute as usual or as otherwise specified 
+		t for Touch files (mark them up to date without really changing them) instead of running their commands
+		n for Print the commands that would be executed, but do not execute them	  
+			  
 4.
   MAKEFILE_LIST
 	make 程序在读取多个 makefile 文件时,包括由环境变量“MAKEFILES”指定, 命令行指定, 当前工作下的默认的以及使用指示符“include”指定包含的,
