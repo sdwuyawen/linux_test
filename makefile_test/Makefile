@@ -19,6 +19,7 @@
 #		通过 call 函数可以将一个变量定义为一个复杂的表达式, 格式如下：
 #		$(call VAR, 参数1, 参数2,...)
 #		call 函数可以将 "参数1“ ，”参数2“ 传递到VAR中, VAR根据传递进来的参数进行展开成一个完整的表达式.
+#	10). 命令行中调用makefile的函数dirname basename, 需要$$, 如果是函数内部，需要$$$$
 ##
 k = $(2)$(1) 
 map = $(foreach a,$(2),$(call $(1),$(a),good-)) 
@@ -31,9 +32,8 @@ export SHELL=/usr/bin/env bash -c '. shell.sh; eval "$$2"' --
 
 NO_TRACE_MAKE := make
 
-.PHONY: all test stamp
-
-all: test foo stamp test1 test2 test3
+.PHONY: all test stamp clean
+all: test foo stamp test2 test3
 	@echo "all"
 	@echo "$(o)"
 	@echo $(PATH)
@@ -45,6 +45,7 @@ test:
 	@echo "test"
 	@$(eval R := 5)
 	@echo $R
+	@echo $(sort $o)
 
 define func
 .PHONY: $1
@@ -122,17 +123,28 @@ stamp::
 	@echo "Config :"; \
 	getvar $(call shvar,Package/test/config);
 	@echo "stamp 2"	
-			
+
 .obj/file.mk:
-	@echo $@
+	@echo $@ - $$(basename $@)
 	@mkdir -p $(@D)
 	@(echo "hello" | awk '{ \
 			print "$$(eval $$(call func,test1))"; \
 		}'; \
 	) > $@
 
+all: test1			
 -include .obj/file.mk	
 #include也是作为依赖
+
+define stampfile
+.obj/stamp: 	
+	@echo $$@ - $$$$(dirname $$@) - $$(@D)
+	@mkdir -p $$$$(dirname $$@)
+	@touch $$@
+endef	
+
+$(eval $(call stampfile))
+all: .obj/stamp
 
 #导入两次build-binary.mk
 #产生test2和test3目标依赖
@@ -140,3 +152,6 @@ $(foreach __pass2_module,test2 test3,\
     $(eval LOCAL_MODULE := $(__pass2_module))\
     $(eval include build-binary.mk)\
 )
+
+clean :
+	-rm -rf .obj
