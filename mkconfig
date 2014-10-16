@@ -26,6 +26,7 @@ $(TARGETS_OBJ_DIR)/%.o : %.cpp
 all_tests: $(TARGETS_C) $(TARGETS_CXX) $(TARGETS)
 	@$(ECHO) "\033[35;1m[${PWD}] \033[36;1mOK!\033[0m"
 	
-clean_tests: $(TARGETS_CLEAN)
+clean_tests: 
 	@rm -f $(TARGETS_C) $(TARGETS_CXX) $(TARGETS)
+	@rm -f $(TARGETS_CLEAN)
 	@rm -rf $(TARGETS_OBJ_DIR)

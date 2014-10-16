@@ -39,32 +39,49 @@
 		exit
 		
  * 	3). 通过libtest_so2_2.so在调用libtest_so2_1.so	
- * 		(1). /bin/test_so2
-		7503 libtest_init: 1
-		lib path : ./bin/libtest_so2_2.so
-		main_xxx_func
-		libtest_so2_2.c : lib path : ./bin/libtest_so2_1.so
-		libtest_so2_2.c : main_xxx_func
-		libtest_so2_1.c : 3
-		libtest_so2_2.c : exit
+ * 		(1). ./bin/test_so2
+			7503 libtest_init: 1
+			lib path : ./bin/libtest_so2_2.so
+			main_xxx_func
+			libtest_so2_2.c : lib path : ./bin/libtest_so2_1.so
+			libtest_so2_2.c : main_xxx_func
+			libtest_so2_1.c : 3
+			libtest_so2_2.c : exit
 
-		dlclose
+			dlclose
 
-		exit
-		7503 libtest_uninit: 2	 		
- * 		(2). /bin/test_so2_1, 在需要用的时候才去加载		 
-		lib path : ./bin/libtest_so2_2.so
-		7799 libtest_init: 1
-		main_xxx_func
-		libtest_so2_2.c : lib path : ./bin/libtest_so2_1.so
-		libtest_so2_2.c : main_xxx_func
-		libtest_so2_1.c : 2
-		libtest_so2_2.c : exit
+			exit
+			7503 libtest_uninit: 2	 		
+ * 		(2). ./bin/test_so2_1, 在需要用的时候才去加载		 
+			lib path : ./bin/libtest_so2_2.so
+			7799 libtest_init: 1
+			main_xxx_func
+			libtest_so2_2.c : lib path : ./bin/libtest_so2_1.so
+			libtest_so2_2.c : main_xxx_func
+			libtest_so2_1.c : 2
+			libtest_so2_2.c : exit
 
-		dlclose
-		7799 libtest_uninit: 1
+			dlclose
+			7799 libtest_uninit: 1
 
-		exit
+			exit
+		(3). libtest_so2_2.so, libtest_so2_1.so test_so2_2没有链接libtest_so2.so
+		./bin/test_so2_2命令输出：
+			lib path : ./bin/libtest_so2_2.so
+			10351 libtest_init: 1
+			main_xxx_func
+			libtest_so2_2.c : lib path : ./bin/libtest_so2_1.so
+			libtest_so2_2.c : main_xxx_func
+			libtest_so2_1.c : 2
+			libtest_so2_2.c : exit
+
+			dlclose
+			10351 libtest_uninit: 1
+
+			exit	
+		在test_so2_2.c中调用下面语句来加载libtest_so2.so, 
+			handle1 = dlopen(lib1_path, RTLD_NOW|RTLD_GLOBAL);	
+		因为增加RTLD_GLOBAL, 则动态库中定义的符号可被其后打开的其它库重定位。
  **/
 #include <stdio.h>
 #include <stdlib.h>

@@ -72,7 +72,7 @@ clean:
 	@$(ECHO) "\033[35;1m=== clean targets === \033[0m" ;
 	@for file in $(MK_FILE_LIST) ; do \
 		cd `dirname $$file`; \
-		$(ECHO) "\033[35;1m[`dirname $$file`] clean \033[0m" ; \
+		$(ECHO) "\033[35;1m[`dirname $$file`] \033[36;1m`basename $$file` clean \033[0m" ; \
 		$(MAKE) -f `basename $$file` clean_tests; \
 		cd $(LOCAL_ROOT_DIR); \
 	done	
@@ -89,7 +89,7 @@ mk-%:
 clean-%:
 	@for file in $(shell find $(patsubst clean-%,%,$@) -name *.mk) ; do \
 		cd `dirname $$file`; \
-		$(ECHO) "\033[35;1m[`dirname $$file`] clean \033[0m" ; \
+		$(ECHO) "\033[35;1m[`dirname $$file`] \033[36;1m`basename $$file` clean \033[0m" ; \
 		$(MAKE) -f `basename $$file` clean_tests; \
 		cd $(LOCAL_ROOT_DIR); \
 	done

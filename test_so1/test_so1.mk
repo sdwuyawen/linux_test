@@ -3,6 +3,8 @@ TARGETS := $(TARGETS_DIR)/test_so1
 TARGETS_1 := $(TARGETS_DIR)/test_so1_1
 TARGETS_LIB := $(TARGETS_DIR)/libtest_so1.so
 
+TARGETS_CLEAN := $(TARGETS) $(TARGETS_1) $(TARGETS_LIB)
+
 SRCS_C := test_so1.c
 OBJS_C := $(subst .c,.o,$(SRCS_C))
 OBJS_C := $(foreach i,$(OBJS_C),$(TARGETS_OBJ_DIR)/$(i))
