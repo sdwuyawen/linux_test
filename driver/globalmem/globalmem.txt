@@ -1,0 +1,552 @@
+1).
+   (1).加载ko 
+    $insmod globalmem.ko
+    $lsmod | grep "globalmem"
+      
+   (2).查看devices
+   	$cat /proc/devices
+   	 Character devices:
+   	 ...
+   	 199 globalmem
+   	 ...
+   	 
+   	 
+   	$ls -l /sys/module/globalmem/parameters
+   	-r--r--r-- 1 root root 4096 2012-11-12 09:56 globalmem_major
+   	
+   (3).
+    $rmmod globalmem
+    $insmod globalmem.ko globalmem_major=243
+   	$cat /proc/devices
+   	 Character devices:
+   	 ...
+   	 243 globalmem
+   	 ...
+   	 
+2). 增加sysfs   	     
+
+	(1).在驱动初始化的代码里调用class_create为该设备创建一个class，再为每个设备调用 class_device_create创建对应的设备	
+	static struct class *globalmeme_class;  /*by paul.*/
+			
+	int globalmem_init(void)
+	{
+		...
+		/* create virtual_disk_class under sysfs by paul.*/
+		globalmeme_class = class_create(THIS_MODULE, "paul");
+		if(IS_ERR(globalmeme_class))
+		{
+			printk("Err: failed in creating globalmeme_class.\n");
+	    	return -1;
+		}
+		
+		/* register your own device in sysfs, and this will cause udev to create corresponding device node */
+		device_create(globalmeme_class, NULL, devno, 0, "globalmem");
+		printk (KERN_INFO "Registered character driver globalmeme.\n");
+		/*end create virtual_disk_class by paul.*/    
+		
+		...    
+	}      
+	
+	void globalmem_exit(void)
+	{
+	    cdev_del(&globalmem_devp->cdev);
+		device_destroy(globalmeme_class, MKDEV(globalmem_major, 0)); 
+		class_destroy(globalmeme_class);  
+	    kfree(globalmem_devp);
+	    unregister_chrdev_region(MKDEV(globalmem_major, 0), 1);
+	}
+
+
+   (2).
+    $ls -l /dev
+    ...
+    crw-rw---- 1 root   root    199,   0 2012-11-12 10:17 globalmem
+    ...
+    
+    $fine / -name globalmem
+	/sys/devices/virtual/paul/globalmem
+	/sys/class/paul/globalmem
+	/sys/module/globalmem
+	/dev/globalmem
+	/dev/.udev/names/globalmem
+	
+3). 增加中断机制
+    (1). mems_irq为设备中断求号
+ 	//register interrupt.       
+    int flagnum;     
+    if(!(flagnum = request_irq(mems_irq, &mems_irq_handler, IRQF_SHARED, interface, globalmem_devp)))  
+    {  
+        printk(KERN_INFO "Register interrupt correctly..\n");  
+        goto fail_malloc;  
+    }  
+    else  
+    {
+        printk(KERN_INFO "Error was happened here...%d\n",flagnum);
+    }
+    
+    
+    //释放设备号和中断向量   
+    free_irq(mems_irq, mems_devp);   
+    
+    (2).
+     $cat /proc/interrupts
+     1:          8   IO-APIC-edge      i8042, globalmem
+     
+
+4). 增加一个globalmem1 device     
+    (1).
+    $ls -l /dev | grep "globalmem"
+	crw-rw---- 1 root   root    199,   0 2012-11-12 13:43 globalmem
+	crw-rw---- 1 root   root    199,   1 2012-11-12 13:43 globalmem1
+    
+    $find / -name "globalmem*"
+	/sys/devices/virtual/paul/globalmem
+	/sys/devices/virtual/paul/globalmem1
+	/sys/class/paul/globalmem
+	/sys/class/paul/globalmem1
+	/sys/module/globalmem
+	/sys/module/globalmem/parameters/globalmem_major
+	/dev/globalmem1
+	/dev/globalmem
+	/dev/.udev/names/globalmem1
+	/dev/.udev/names/globalmem
+	/proc/irq/1/globalmem
+    
+5). 增加parant device和bus type
+  (1).
+	static void demo_bus_release(struct device *dev)
+	{
+		printk("demo bus release\n");
+		return;
+	}
+	
+	struct device demo_bus = {
+		.init_name	= "demoBusDev",
+		.release    = demo_bus_release
+	};  /*这是顶层总线，parent 和 bus 成员为 NULL*/
+	
+	
+	static ssize_t modalias_show(struct device *dev, struct device_attribute *a,
+								char *buf)
+	{
+		struct demo_basedev *pdev = to_demo_basedev(dev);
+		int len = snprintf(buf, PAGE_SIZE, "demo:%s\n", pdev->name);
+	
+		return (len >= PAGE_SIZE) ? (PAGE_SIZE - 1) : len;
+	}
+	
+	
+	static struct device_attribute demo_dev_attrs[] = {
+		__ATTR_RO(modalias),
+		__ATTR_NULL,
+	};
+	
+	static int demo_match(struct device *dev, struct device_driver *drv)
+	{
+		struct demo_basedev *pdev = to_demo_basedev(dev);
+		return (strcmp(pdev->name, drv->name) == 0);
+	}
+	
+	static int demo_uevent(struct device *dev, struct kobj_uevent_env *env)
+	{
+		struct demo_basedev *pdev = to_demo_basedev(dev);
+		add_uevent_var(env, "MODALIAS=demo:%s", pdev->name);
+		
+		return 0;
+	}
+	
+	struct bus_type demo_bus_type = {
+		.name		= "demoBus",
+		.dev_attrs	= demo_dev_attrs,
+		.match		= demo_match,
+		.uevent		= demo_uevent,
+	};      
+	
+	...	
+	device_register(&demo_bus);
+	bus_register(&demo_bus_type);
+	
+	...
+	device_create(globalmeme_class, &demo_bus, MKDEV(globalmem_major, 0), NULL, "globalmem");
+	
+	
+	...
+	bus_unregister(&demo_bus_type);
+	device_unregister(&demo_bus);
+	
+	$find / -name "globalmem*"
+	/sys/devices/demoBusDev/paul/globalmem
+	/sys/devices/demoBusDev/paul/globalmem1
+	/sys/class/paul/globalmem
+	/sys/class/paul/globalmem1
+	/sys/module/globalmem
+	/sys/module/globalmem/parameters/globalmem_major
+	/dev/globalmem1
+	/dev/globalmem
+	/dev/.udev/names/globalmem1
+	/dev/.udev/names/globalmem
+	/proc/irq/1/globalmem
+	
+	如果没有指定demo_bus, 那么paul/globalmem*会放到virtual下, 
+	
+  (2)
+   	struct bus_type {
+         const char            *name;
+         struct bus_attribute      *bus_attrs;
+         struct device_attribute *dev_attrs;
+         struct driver_attribute  *drv_attrs;
+         int (*match)(struct device *dev, struct device_driver *drv);
+         int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
+         int (*probe)(struct device *dev);
+         int (*remove)(struct device *dev);
+         void (*shutdown)(struct device *dev);
+         int (*suspend)(struct device *dev, pm_message_t state);
+         int (*suspend_late)(struct device *dev, pm_message_t state);
+         int (*resume_early)(struct device *dev);
+         int (*resume)(struct device *dev);
+         struct pm_ext_ops *pm;
+         struct bus_type_private *p;
+	};
+
+	struct bus_type_private {
+         struct kset subsys;
+         struct kset *drivers_kset;
+         struct kset *devices_kset;
+         struct klist klist_devices;
+         struct klist klist_drivers;
+         struct blocking_notifier_head bus_notifier;
+         unsigned int drivers_autoprobe:1;
+         struct bus_type *bus;
+	};
+
+	与class类似，bus在sysfs中的显示由struct bus_type_private决定，struct bus_type只是一个封装。
+	struct bus_type_private::subsys.kobj代表/sys/bus/<bus>目录。
+	struct bus_type_private::subsys.kobj.kset = bus_kset; // 默认父目录为/sys/bus/
+	struct bus_type_private::subsys.kobj.ktype = &bus_ktype;  // bus的属性操作
+	struct bus_type_private::subsys.kobj.name = <bus在/sys/bus/目录下显示的名字>;
+	在/sys/bus/目录，每创建成功一个<bus>，都会自动创建两个子目录drivers和devices，分别代表连到此<bus>的设备和驱动。在drivers和devices子目录下，每新建一个driver，会把struct bus_type中的drv_attrs属性赋给那个driver；每创建一个device，会把struct bus_type中dev_attrs赋给那个device。
+	2.2 新建bus	
+		struct bus_type i2c_bus_type = {
+	       .name             = "i2c",
+	       .dev_attrs       = i2c_dev_attrs,
+	       .match           = i2c_device_match,
+	       .uevent          = i2c_device_uevent,
+	       .probe           = i2c_device_probe,
+	       .remove          = i2c_device_remove,
+	       .shutdown      	= i2c_device_shutdown,
+	       .suspend         = i2c_device_suspend,
+	       .resume          = i2c_device_resume,
+	       .bus_attr        = …
+	};
+	int ret = bus_register(&i2c_bus_type);
+	int bus_register(struct bus_type *bus);
+	分配内存给struct bus_type_private;
+	根据struct bus_type的域设置bus_type_private;
+	根据.bus_attr设置bus的属性，这些属性在bus_unregister时会被自动释放。（bus属性也可通过bus_create_file动态添加，但所有动态添加的属性都要在卸载时通过bus_remove_file释放。）	
+	
+	3.1
+ 		int device_register(struct device *dev) ;
+		此函数将device登记到sysfs中。在调用之前，需对struct device进行初始化。
+		struct device dev ;
+		dev.parent = <parent dev> ;  	// 父设备
+		dev.release = <func release> ; 	// 登记释放dev时调用的回调函数
+		dev.class = <class> ;     		// struct class
+		dev.bus = <bus> ;         		// 所属总线	
+		
+ 		在sysfs的设备模型中，有四种设备类型：
+		物理设备           有parent设备，没有class
+		直接虚拟设备       有parent设备和class，parent没有class
+		间接虚拟设备       有parent设备和class，parent有class
+		纯虚拟设备         没有parent，有class（网络环回设备等）		
+		
+ 	3.2
+ 	 	void setup_parent(struct device *dev, struct device *parent);
+		这个函数用来决定dev被加到sysfs的哪个目录下。代码逻辑为：
+       	kobj = get_device_parent(dev, parent);
+       	if (kobj)
+              dev->kobj.parent = kobj;
+
+		static struct kobject *get_device_parent(struct device *dev, struct device *parent) ;
+ 		这个函数会按照设备类型决定设备的父目录 :
+	l   如果是物理设备且有父设备 （dev->class == NULL && dev->parent）
+       	父目录就是父设备代表的目录
+	l   如果是直接虚拟设备 （dev->class && dev->parent && dev->parent->class != NULL）
+		在父设备代表的目录下新建一个子目录，名字为dev->class->name。然后把这个新建的目录作为设备的父目录 :
+		/sys/devices/<parent_name >/<class_name>。
+	l   如果是间接虚拟设备 （dev->class && dev->parent && dev->parent->class == NULL）
+       	父目录就是父设备代表的目录
+	l   如果是纯虚拟设备 （dev->class && dev->parent == NULL）
+       	父目录为/sys/devices/virtual/<class_name>
+	l   如果是物理设备且没有父设备 （dev->class == NULL && dev->parent == NULL）
+    本函数不设置父目录，返回NULL。但由于此函数返回后会继续调用kobject_add，所以父目录会设置成dev->kobj->kset代表的目录，
+    也就是一开始device_initialize函数里设置的/sys/devices目录。
+    可以看出这是物理root设备，比如platform （/sys/devices/platform）		
+
+	4.1
+	 driver_register将driver注册到sysfs系统中，在注册之前需要对driver进行初始化
+	struct device_driver driver = {
+       	.name = <driver name>;
+       	.bus = <bus>;
+       	.probe = <probe func>;             // 探测设备
+       	.remove = <remove func>;           // 移除设备
+       	.suspend = <suspend func>;         // 挂起设备 进入低功耗状态）
+       	.resume = <resume func>;           // 运行设备（从低功耗状态恢复）
+	};
+
+ 	
+	
+6). 对/dev/globalmem同时打开2次, driver的globalmem_dev增加cnt计数器
+    open -> globalmem_open
+    close -> globalmem_release
+    
+7). 修改为platform_device和platform_driver
+    先调用platform_device_register注册设备，后调用platform_driver_register, 扫描device的name匹配driver的name, 触发demo_drv_probe
+    调用platform_driver_unregister, 触发demo_drv_remove
+    
+    static ssize_t demo_store(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf, size_t count)
+	{	
+		struct globalmem_dev *globalmem_devp = dev_get_drvdata(dev);
+		...
+	}
+	
+	globalmem_devp这个地址值是在
+	device_create(globalmeme_class, &dev->dev, MKDEV(globalmem_major, dev->id), globalmem_devp, "%s", globalmem_devp->name);
+	通过第4个参数传进去的。
+	
+8).增加demo_attr_group
+	/* include/linux/sysfs.h */
+	/* FIXME
+	 * The *owner field is no longer used.
+	 * x86 tree has been cleaned up. The owner
+	 * attribute is still left for other arches.
+	 */
+	struct attribute {
+	    const char      *name;
+	    struct module       *owner;
+	    mode_t          mode;
+	};
+	
+	struct attribute_group {
+	    const char      *name;
+	    mode_t          (*is_visible)(struct kobject *,
+	                          struct attribute *, int);
+	    struct attribute    **attrs;
+	};
+	
+	/**                                                                                   
+	 * Use these macros to make defining attributes easier. See include/linux/de
+	 * for examples..                                                           
+	 */                                                                         
+	                                                                            
+	#define __ATTR(_name,_mode,_show,_store) { \                                
+	    .attr = {.name = __stringify(_name), .mode = _mode },   \               
+	    .show   = _show,                    \                                   
+	    .store  = _store,                   \                                   
+	}                                                                           
+	                                                                            
+	#define __ATTR_RO(_name) { \                                                
+	    .attr   = { .name = __stringify(_name), .mode = 0444 }, \               
+	    .show   = _name##_show,                 \                               
+	}                                                                           
+	                                                                            
+	#define __ATTR_NULL { .attr = { .name = NULL } }                            
+	                                                                            
+	#define attr_name(_attr) (_attr).attr.name           
+	
+	struct sysfs_ops {                                                          	                       
+	    ssize_t (*show)(struct kobject *, struct attribute *,char *);           
+	    ssize_t (*store)(struct kobject *,struct attribute *,const char *, size_
+	};               
+	
+	struct device_attribute {   
+	    struct attribute    attr;   
+	    ssize_t (*show)(struct device *dev, struct device_attribute *attr,   
+	            char *buf);   
+	    ssize_t (*store)(struct device *dev, struct device_attribute *attr,   
+	             const char *buf, size_t count);   
+	};  	                          
+	
+	struct driver_attribute {
+	    struct attribute attr;
+	    ssize_t (*show)(struct device_driver *driver, char *buf);
+	    ssize_t (*store)(struct device_driver *driver, const char *buf,
+	             size_t count);
+	};                                 
+	
+	
+9).增加bin attriute
+	sysfs通常要求所有属性都只包含一个可读文本格式的值，很少需要创建能够处理大量二进制数据的属性。
+	但当在用户空间和设备间传递不可改变的数据时（如上传固件到设备）就需要这个特性。二进制属性使用一个 bin_attribute 结构来描述：
+	struct bin_attribute {
+	    struct attribute    attr;/*属性结构体*/
+	    size_t            size;/*这个二进制属性的最大大小(若无最大值则为0)*/
+	    void            *private;
+	    ssize_t (*read)(struct kobject *, char *, loff_t, size_t);
+	    ssize_t (*write)(struct kobject *, char *, loff_t, size_t);
+		/*read 和 write 方法类似字符驱动的读写方法;，在一次加载中可被多次调用,每次调用最大操作一页数据，
+		且必须能以其他方式判断操作数据的末尾*/
+	    int (*mmap)(struct kobject *, struct bin_attribute *attr,
+	         struct vm_area_struct *vma);
+	};
+	/*二进制属性必须显式创建，不能以默认属性被创建，创建一个二进制属性调用:*/
+	int sysfs_create_bin_file(struct kobject *kobj, struct bin_attribute *attr);
+	/*删除二进制属性调用:*/
+	int sysfs_remove_bin_file(struct kobject *kobj, struct bin_attribute *attr);
+
+ 
+  (1).
+	#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,34))
+	static ssize_t demo_bin_read(struct file *filp, struct kobject *kobj,
+			struct bin_attribute *attr,
+			char *buf, loff_t off, size_t count)
+	#else
+	static ssize_t demo_bin_read(struct kobject *kobj,
+			struct bin_attribute *attr,
+			char *buf, loff_t off, size_t count)
+	#endif		
+	{
+		printk("%s : off=0x%x, 0x%x\n", __FUNCTION__, (int)off, (int)count);
+		
+		return count;
+	}
+	
+	#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,34))
+	static ssize_t demo_bin_write(struct file *filp, struct kobject *kobj,
+			struct bin_attribute *attr,
+			char *buf, loff_t off, size_t count)
+	#else
+	static ssize_t demo_bin_write(struct kobject *kobj,
+			struct bin_attribute *attr,
+			char *buf, loff_t off, size_t count)
+	#endif		
+	{
+		printk("%s : off=0x%x, 0x%x\n", __FUNCTION__, (int)off, (int)count);
+		
+		return count;
+	}
+
+	globalmem_devp->bin.attr.name = "eeprom";
+	globalmem_devp->bin.attr.mode = 0666;
+	globalmem_devp->bin.read = demo_bin_read;
+	globalmem_devp->bin.write = demo_bin_write;
+	globalmem_devp->bin.mmap = NULL;
+	globalmem_devp->bin.size = 8192;
+	sysfs_create_bin_file(&dev->dev.kobj, &globalmem_devp->bin);
+
+	在demoDev.0下有文件eeprom, 文件大小为8192,
+	
+  (2).
+  	在test_bin_attr.c中
+		lseek(fd, filesize/2, 0);	
+		write(fd, buf, 1024);
+		read(fd, buf, 1024);
+
+	运行test_bin_attr, dmesg打印：
+	[ 1884.757495] demo_bin_write : off=0x1000, 0x400
+	[ 1884.757498] demo_bin_read : off=0x1400, 0x400
+	
+  (3).
+  	在test_bin_attr.c中
+		lseek(fd, 0, 0);	
+		write(fd, buf, 1024);
+		read(fd, buf, 1024);
+
+	运行test_bin_attr, dmesg打印：  
+	[ 2269.031140] demo_bin_read : off=0x0, 0x400
+	[ 2269.031143] demo_bin_read : off=0x400, 0x400
+	[ 2269.031144] demo_bin_read : off=0x800, 0x400
+	[ 2269.031145] demo_bin_read : off=0xc00, 0x400
+	[ 2269.031146] demo_bin_read : off=0x1000, 0x400
+	[ 2269.031147] demo_bin_read : off=0x1400, 0x400
+	[ 2269.031148] demo_bin_read : off=0x1800, 0x400
+	[ 2269.031149] demo_bin_read : off=0x1c00, 0x400
+	[ 2269.031150] demo_bin_read : off=0x2000, 0x0  
+	
+  (4).		
+	#if 0
+	static ssize_t demo_bin_read(struct file *filp, struct kobject *kobj,
+			struct bin_attribute *attr,
+			char *buf, loff_t off, size_t count)
+	#else
+	static ssize_t demo_bin_read(struct kobject *kobj,
+			struct bin_attribute *attr,
+			char *buf, loff_t off, size_t count)
+	#endif		
+	{
+		struct globalmem_dev *globalmem_devp = dev_get_drvdata(container_of(kobj, struct device, kobj));
+		int end;
+		
+		printk("%s : off=0x%x, 0x%x, %s\n", __FUNCTION__, (int)off, (int)count, globalmem_devp->name);
+		
+		end = off + count; 
+		if (end > GLOBALMEM_SIZE)
+		{
+			count -= (end - GLOBALMEM_SIZE);
+		}	
+		
+		memcpy(buf, globalmem_devp->mem, count);
+		
+		return count;
+	}
+	
+	#if 0
+	static ssize_t demo_bin_write(struct file *filp, struct kobject *kobj,
+			struct bin_attribute *attr,
+			char *buf, loff_t off, size_t count)
+	#else
+	static ssize_t demo_bin_write(struct kobject *kobj,
+			struct bin_attribute *attr,
+			char *buf, loff_t off, size_t count)
+	#endif		
+	{
+		struct globalmem_dev *globalmem_devp = dev_get_drvdata(container_of(kobj, struct device, kobj));
+		int end;
+		
+		printk("%s : off=0x%x, 0x%x, %s\n", __FUNCTION__, (int)off, (int)count, globalmem_devp->name);
+		
+		end = off + count; 
+		if (end > GLOBALMEM_SIZE)
+		{
+			count -= (end - GLOBALMEM_SIZE);
+		}
+		
+		memcpy(globalmem_devp->mem, buf, count);
+		
+		return count;
+	}
+		  
+	globalmem_devp->bin.attr.name = "eeprom";
+	globalmem_devp->bin.attr.mode = 0666;
+	globalmem_devp->bin.read = demo_bin_read;
+	globalmem_devp->bin.write = demo_bin_write;
+	globalmem_devp->bin.mmap = NULL;
+	globalmem_devp->bin.size = GLOBALMEM_SIZE;
+	sysfs_create_bin_file(&dev->dev.kobj, &globalmem_devp->bin);
+	
+	在test_bin_attr.c中
+		sprintf(buf, DEMO_BIN_ATTR_NAME);	
+		lseek(fd, 0, 0);	
+		write(fd, buf, 1024);
+		
+		memset(buf, 0, 1024);
+		lseek(fd, 0, 0);	
+		ret = read(fd, buf, 1024);
+		printf("ret = %d, %s\n", ret, buf);
+		
+	打印 :
+   		ret = 1024, /sys/devices/platform/demoDev.0/eeprom
+   		
+   	dmesg :
+		[ 3274.164303] demo_bin_write : off=0x0, 0x400, globalmem1
+		[ 3274.164310] demo_bin_read : off=0x0, 0x400, globalmem1   	
+   	
+   		
+   
+   
+  
+	
+	
+	
+	   

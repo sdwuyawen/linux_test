@@ -1,0 +1,173 @@
+#define DEFINE_WAIT(name)                               \
+    wait_queue_t name = {                               \
+        .private    = current,                          \
+        .func       = autoremove_wake_function,         \
+        .task_list = LIST_HEAD_INIT((name).task_list), -\
+    }
+
+
+wait_queue_t
+---------------------------------------------------------
+typedef struct __wait_queue wait_queue_t;
+
+struct __wait_queue {
+    unsigned int      flags;
+#define WQ_FLAG_EXCLUSIVE   0x01
+    void              *private;
+    wait_queue_func_t func;
+    struct list_head task_list;
+};
+
+(1).init_waitqueue_head
+	初始化等待队列头(wait_queue_head_t): 将wait_queue_head_t.task_list域中的两个指针指向其自身(wait_queue_head_t.task_list)
+	----------------------------------------------------------------
+	void init_waitqueue_head(wait_queue_head_t *q)
+	{
+	    spin_lock_init(&q->lock);
+	    INIT_LIST_HEAD(&q->task_list);
+	}
+	
+	
+	static inline void INIT_LIST_HEAD(struct list_head *list)
+	{
+	    list->next = list;
+	    list->prev = list;
+	}
+
+(2). wait_event_interruptible
+	#define wait_event_interruptible(wq, condition)          \
+	({                                                       \
+	    int __ret = 0;                                       \
+	    if (!(condition))                                    \
+	        __wait_event_interruptible(wq, condition, __ret);\
+	    __ret;                                               \
+	})
+
+	#define __wait_event_interruptible(wq, condition, ret)                        \
+	do {                                                                        \
+	        DEFINE_WAIT(__wait);                                                \
+	                                                                        \
+	        for (;;) {                                                        \
+	                prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);        \
+	                if (condition)                                                \
+	                        break;                                                \
+	                if (!signal_pending(current)) {                                \
+	                        schedule();                                        \
+	                        continue;                                        \
+	                }                                                        \
+	                ret = -ERESTARTSYS;                                        \
+	                break;                                                        \
+	        }                                                                \
+	        finish_wait(&wq, &__wait);                                        \
+	} while (0)
+	
+	__wait_event_interruptible()首先定义并初始化一个wait_queue_t变量__wait，其中数据为当前进程current，并把__wait入队。
+	在无限循环中，__wait_event_interruptible()将本进程置为可中断的挂起状态，反复检查condition是否成立，
+	如果成立则退出，如果不成立则继续休眠；条件满足后，即把本进程运行状态置为运行态(此时如果不执行下面的函数wake_up_interruptible，
+	上面wait_event_interruptible还会继续休眠)，并将__wait从等待队列中清除掉，从而进程能够调度运行。
+	如果进程当前有异步信号(POSIX的)，则返回-ERESTARTSYS。	
+　　/*
+　　* Used to distinguish between sync and async io wait context:
+　　* sync i/o typically specifies a NULL wait queue entry or a wait
+　　* queue entry bound to a task (current task) to wake up.
+　　* aio specifies a wait queue entry with an async notification
+　　* callback routine， not associated with any task.
+　　*/
+
+　　#define is_sync_wait(wait)       (!(wait) || ((wait)->private))
+
+　　同步io等待将唤醒当前进程，异步io等待和当前进程无关，时间到后执行安装的回调函数
+　　void fastcall prepare_to_wait(wait_queue_head_t *q， wait_queue_t *wait， int state)
+　　{
+	　　unsigned long flags;
+	
+	　　wait->flags &= ~WQ_FLAG_EXCLUSIVE; //非排它性的等待将都被唤醒	
+	
+	　　spin_lock_irqsave(&q->lock， flags);	
+	　　//等待节点尚未添加到任何等待队列中，防止重复加入
+	　　if (list_empty(&wait->task_list))	
+		　　__add_wait_queue(q， wait);
+	
+	　　if (is_sync_wait(wait))	
+		　　set_current_state(state);
+	
+	　　spin_unlock_irqrestore(&q->lock， flags);
+　　}
+
+　　prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state)
+　　wait->flags |= WQ_FLAG_EXCLUSIVE;
+　　排他性等待，其余和prepare_to_wait一样
+
+　　void fastcall finish_wait(wait_queue_head_t *q， wait_queue_t *wait)
+　　{	
+	　　unsigned long flags;	
+	
+	　　__set_current_state(TASK_RUNNING); //确保进程状态为running	
+	　　//若有等待进程，则将其从等待队列中删除	
+	　　if (!list_empty_careful(&wait->task_list)) {	
+		　　spin_lock_irqsave(&q->lock， flags);	
+	　　	list_del_init(&wait->task_list);
+		　　spin_unlock_irqrestore(&q->lock， flags);	
+	　　}
+　　}	
+	
+(3). wake_up_interruptible	
+	#define wake_up(x) __wake_up((x), TASK_NORMAL, 1, NULL)
+	#define wake_up_interruptible(x) __wake_up((x), TASK_INTERRUPTIBLE, 1, NULL) 
+
+	/**
+	 * __wake_up - wake up threads blocked on a waitqueue.
+	 * @q: the waitqueue
+	 * @mode: which threads
+	 * @nr_exclusive: how many wake-one or wake-many threads to wake up
+	 * @key: is directly passed to the wakeup function
+	 */
+	void __wake_up(wait_queue_head_t *q, unsigned int mode,
+				int nr_exclusive, void *key)
+	{
+		unsigned long flags;
+	
+		spin_lock_irqsave(&q->lock, flags);
+		__wake_up_common(q, mode, nr_exclusive, 0, key);
+		spin_unlock_irqrestore(&q->lock, flags);
+	}
+	
+	/*
+	 * The core wakeup function. Non-exclusive wakeups (nr_exclusive == 0) just
+	 * wake everything up. If it's an exclusive wakeup (nr_exclusive == small +ve
+	 * number) then we wake all the non-exclusive tasks and one exclusive task.
+	 *
+	 * There are circumstances in which we can try to wake a task which has already
+	 * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
+	 * zero in this (rare) case, and we handle it by continuing to scan the queue.
+	 */
+	void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
+				int nr_exclusive, int sync, void *key)
+	{
+		wait_queue_t *curr, *next;
+	
+		list_for_each_entry_safe(curr, next, &q->task_list, task_list) {
+			unsigned flags = curr->flags;
+	
+			if (curr->func(curr, mode, sync, key) &&
+					(flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
+				break;
+		}
+	}	
+
+(4).唤醒函数
+	很少会需要调用wake_up_interruptible 之外的唤醒函数，但为完整起见，这里是整个集合：
+	wake_up(wait_queue_head_t *queue);
+	wake_up_interruptible(wait_queue_head_t *queue);
+	wake_up 唤醒队列中的每个非独占等待进程和一个独占等待进程。wake_up_interruptible 同样, 除了它跳过处于不可中断休眠的进程。它们在返回之前, 使一个或多个进程被唤醒、被调度(如果它们被从一个原子上下文调用, 这就不会发生).
+	
+	wake_up_nr(wait_queue_head_t *queue, int nr);
+	wake_up_interruptible_nr(wait_queue_head_t *queue, int nr);
+	这些函数类似 wake_up, 除了它们能够唤醒多达 nr 个独占等待者, 而不只是一个. 注意传递 0 被解释为请求所有的互斥等待者都被唤醒
+	
+	wake_up_all(wait_queue_head_t *queue);
+	wake_up_interruptible_all(wait_queue_head_t *queue);
+	这种 wake_up 唤醒所有的进程, 不管它们是否进行独占等待(可中断的类型仍然跳过在做不可中断等待的进程)
+	
+	wake_up_interruptible_sync(wait_queue_head_t *queue);
+	一 个被唤醒的进程可能抢占当前进程, 并且在 wake_up 返回之前被调度到处理器。 但是, 如果你需要不要被调度出处理器时，可以使用 wake_up_interruptible 的"同步"变体. 这个函数最常用在调用者首先要完成剩下的少量工作，且不希望被调度出处理器时。
