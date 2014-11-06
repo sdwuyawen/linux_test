@@ -138,3 +138,19 @@ $(lastword $(MAKEFILE_LIST))为mk1/Android.mk
 	变量“MAKELEVEL”代表了调用的深度
 	
 5. 在include <file>时, 如果makefile中有目标<file>， 就会执行目标<file>				
+
+6. install命令
+--backup[=CONTROL]: 为每个已存在的目的地文件进行备份。
+-b: 类似--backup，但不接受任何参数。
+-c: (此选项不作处理)。
+-d: --directory：所有参数都作为目录处理，而且会创建指定目录的所有主目录。
+-D: 创建<目的地>前的所有主目录，然后将<来源>复制至 <目的地>；在第一种使用格式中有用。
+-g: --group=组：自行设定所属组，而不是进程目前的所属组。
+-m: --mode=模式：自行设定权限模式 (像chmod)，而不是rwxr－xr－x。
+-o: --owner=所有者：自行设定所有者 (只适用于超级用户)。
+-p: --preserve－timestamps：以<来源>文件的访问/修改时间作为相应的目的地文件的时间属性。
+-s: --strip：用strip命令删除symbol table，只适用于第一及第二种使用格式。
+-S: --suffix=后缀：自行指定备份文件的<后缀>。
+-v: --verbose：处理每个文件/目录时印出名称。
+--help: 显示此帮助信息并离开。
+--version: 显示版本信息并离开。 

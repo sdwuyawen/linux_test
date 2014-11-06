@@ -1,0 +1,31 @@
+#===============================================================================
+DST_PATH := $(HOME)/mk 
+SRC_PATH := ./mk 
+
+DST_PATH := $(strip $(DST_PATH))
+SRC_PATH := $(strip $(SRC_PATH))
+
+#===============================================================================
+.PHONY: all clean install_1 install_2 install_3
+
+#===============================================================================
+all:
+
+clean:
+	rm -rf $(DST_PATH)
+
+#===============================================================================
+install_1:
+	@#相当于mkdir -p $(HOME)/mk	
+	install -d $(DST_PATH)	
+	@#相当于cp -rf ./mk/* $(HOME)/mk; chmod 0644 $(HOME)/mk -R
+	install --mode=644 -t $(DST_PATH) $(SRC_PATH)/*	
+	
+install_2:
+	@#相当于mkdir -p $(HOME)/mk; cp -rf ./mk/* $(HOME)/mk; chmod 0644 $(HOME)/mk -R
+	install -D -m 0644 $(SRC_PATH)/* $(DST_PATH)
+	
+install_3:
+	@#相当于cp -rfp ./mk/* $(HOME)/mk; chmod 0644 $(HOME)/mk -R
+	install -p -D -m 0644 $(SRC_PATH)/* $(DST_PATH)
+
