@@ -43,28 +43,24 @@
               int *flag;
               int val;
           };
-
-	结构中的元素解释如下：
-	const char *name：选项名，前面没有短横线。譬如"help"、"verbose"之类。
+		结构中的元素解释如下：
+		const char *name：选项名，前面没有短横线。譬如"help"、"verbose"之类。
+		
+		int has_arg：描述长选项是否有选项参数，如果有，是哪种类型的参数，其值见下表:
+				符号常量             数值            含义
+			no_argument            0            选项没有参数
+			required_argument      1            选项需要参数
+			optional_argument      2            选项参数是可选的
+			 
+		int *flag：
+			如果该指针为NULL，那么getopt_long返回val字段的值；
+			如果该指针不为NULL，那么会使得它所指向的结构填入val字段的值，同时getopt_long返回0
+			 
+		int val：
+			如果flag是NULL，那么val通常是个字符常量，如果短选项和长选项一致，那么该字符就应该与optstring中出现的这个选项的参数相同；
 	
-	int has_arg：描述长选项是否有选项参数，如果有，是哪种类型的参数，其值见下表:
-			符号常量             数值            含义
-		no_argument            0            选项没有参数
-		required_argument      1            选项需要参数
-		optional_argument      2            选项参数是可选的
-		 
-	int *flag：
-		如果该指针为NULL，那么getopt_long返回val字段的值；
-		如果该指针不为NULL，那么会使得它所指向的结构填入val字段的值，同时getopt_long返回0
-		 
-	int val：
-		如果flag是NULL，那么val通常是个字符常量，如果短选项和长选项一致，那么该字符就应该与optstring中
-
-	出现的这个选项的参数相同；
-	最后一个参数：longindex参数一般赋为NULL即可；如果没有设置为NULL，那么它就指向一个变量，这个变量
-	会被赋值为寻找到的长选项在longopts中的索引值，这可以用于错误诊断。
-	注：GNU提供的getopt-long()和getopt-long-only()函数，其中，后者的长选项字串是以一个短横线开始的
-		，而非一对短横线。
+	最后一个参数：longindex参数一般赋为NULL即可；如果没有设置为NULL，那么它就指向一个变量，这个变量会被赋值为寻找到的长选项在longopts中的索引值，这可以用于错误诊断。
+	注：GNU提供的getopt_long()和getopt_long_only()函数，其中，后者的长选项字串是以一个短横线开始的，而非一对短横线。
 */ 
 #include <stdio.h>
 #include <stdlib.h>

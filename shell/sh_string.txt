@@ -50,7 +50,7 @@
     ${variable#pattern} ：如果变量的开始匹配pattern，则去除最小匹配，返回后面的字符，如果不匹配，给出变量。
     ${variable##pattern} ：如果变量的开始匹配pattern，则去除最大匹配，返回后面的字符，如果不匹配，给出变量。
     ${variable%pattern} ：如果变量的最后匹配pattern，则去除最小匹配，返回前面的字符，如果不匹配，给出变量。
-    ${variable%%pattern} ：如果变量的最后匹配pattern，则去除最大匹配，返回前 面的字符，如果不匹配，给出变量。
+    ${variable%%pattern} ：如果变量的最后匹配pattern，则去除最大匹配，返回前面的字符，如果不匹配，给出变量。
     ${variable/pattern/string} ：将第一个匹配更换为string，如果string为null，则删除。如果variable是@或者*，则根据命令所得的参数为单元来执行。
     ${variable//pattern/string} ：将所有匹配更换为string，如果string为null，则删除。如果variable是@或者*，则根据命令所得的参数为单元来执行。
 
