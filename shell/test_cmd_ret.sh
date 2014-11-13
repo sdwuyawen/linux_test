@@ -12,22 +12,32 @@ do_cmd() {
 	printf "${_Y}%s${_N}\n" "$1"
 }
 
+#返回值为真
 do_cmd1() {
 	echo "hello1"	
 	return 0
 }
 
+#返回值为假
 function do_cmd2()
 {
 	echo "hello2"
 	return 1
 }
 
-#如果没有指定返回值，默认返回0
+#如果return没有指定返回值，返回值等于最后命令执行的返回值
 function do_cmd3() 
 {
 	echo "hello3"
 	return
+}
+
+#调用这个函数相当于在调用的地方展开, 最后返回值就是条件判断的返回值
+function do_cmd4() 
+{
+	local string="hello"
+	echo $string
+	[ string != "world" ]	
 }
 
 strtok() { # <string> { <variable> [<separator>] ... }
@@ -76,6 +86,12 @@ cmd3_ret=`do_cmd3`
 echo "cmd3_ret = $cmd3_ret"
 is_cmd3_ok=`do_cmd3 > /dev/null && echo OK || echo FAIL`
 echo "$is_cmd3_ok"
+
+cmd4_ret=`do_cmd4`
+#显示hello
+echo "cmd4_ret = $cmd4_ret"
+is_cmd4_ok=`do_cmd4 > /dev/null && echo OK || echo FAIL`
+echo "$is_cmd4_ok"
 
 #
 strtok "hello world" str1 " "
