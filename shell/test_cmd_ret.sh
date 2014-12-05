@@ -40,6 +40,17 @@ function do_cmd4()
 	[ string != "world" ]	
 }
 
+#$0表示shell脚本的命令行输入(全局)
+#$1表示函数的参数1
+#$2表示函数的参数2
+#以此类推
+do_cmd_args()
+{
+	echo "argv[0] : $0"	
+	echo "argv[1] : $1"
+	echo "argv[2] : $2"
+}
+
 strtok() { # <string> { <variable> [<separator>] ... }
 	local tmp
 	local val="$1"
@@ -93,6 +104,8 @@ echo "cmd4_ret = $cmd4_ret"
 is_cmd4_ok=`do_cmd4 > /dev/null && echo OK || echo FAIL`
 echo "$is_cmd4_ok"
 
+do_cmd_args "argv1" "argv2"
+
 #
 strtok "hello world" str1 " "
 #return 1
@@ -104,3 +117,15 @@ strtok "hello world" str1 " " str2 " "
 echo $?
 echo ${str1}
 echo ${str2}
+
+echo "=== test cat 1 ==="
+PACKAGE_NAME=tes_cmd_ret
+cat <<_ACEOF
+#define PACKAGE_NAME "$PACKAGE_NAME"
+_ACEOF
+
+echo "=== test cat 2 ==="
+#修改在getopts.txt加上-, 才能使“#define ...”附加到cat getopts.txt之后输出
+cat getopts.txt - <<_ACEOF
+#define PACKAGE_NAME "$PACKAGE_NAME"
+_ACEOF

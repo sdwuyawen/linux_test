@@ -6,13 +6,17 @@ DST_PATH := $(strip $(DST_PATH))
 SRC_PATH := $(strip $(SRC_PATH))
 
 #===============================================================================
-.PHONY: all clean install_1 install_2 install_3
+.PHONY: all check clean install_1 install_2 install_3
 
 #===============================================================================
-all:
+all: check
+	@echo "all"
 
 clean:
 	rm -rf $(DST_PATH)
+	
+check:
+	@./exit.sh
 
 #===============================================================================
 install_1:
