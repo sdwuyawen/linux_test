@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
     GtkWidget *frame;
 
     gtk_init(&argc, &argv);
+    gtk_rc_parse("./gtk-test/styles.rc");
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "GtkCheckButton & GtkRadioButton");
     gtk_window_set_default_size(GTK_WINDOW(window), 400, 50);

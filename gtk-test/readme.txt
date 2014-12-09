@@ -39,7 +39,7 @@
 	typedef double  gdouble;
 
 3. GObject
-  1). GTK雖然使用C來撰寫，但是透過GObject函式庫，可以支援物件導向的物件封裝、繼承觀念，透過巨集還可以支援多型的觀念（至少概念上達到一些部份），一個GTK物件階層如下所示：
+  1). GTK雖然使用C來撰寫，但是透過GObject函式庫，可以支援物件導向的物件封裝、繼承觀念，透過巨集(macro)還可以支援多型的觀念（至少概念上達到一些部份），一個GTK物件階層如下所示：
 	GObject
 	 +--GInitiallyUnowned
 		 +-- GtkObject
@@ -230,7 +230,99 @@
 	gtk_text_buffer_set_text(buffer, "Hello! World!", -1);
 
 	設定文字是使用gtk_text_buffer_set_text()函式，想取得文字則是使用gtk_text_buffer_get_text()。
+	
+  9). GtkEntryCompletion
+	先前看過 GtkEntry 的範例，主要是作為使用者輸入文字之用，您可以搭配GtkEntryCompletion來讓GtkEntry擁有自動完成功能，
+	這需要使用到GtkListStore與GtkTreeIter，這兩個類別在 GtkComboBox 與 GtkListStore 曾經介紹過，只要您會使用 GtkEntry、
+	GtkListStore與GtkTreeIter，製作自動完成就不是什麼困難的事。	
+    completion = gtk_entry_completion_new();
+    gtk_entry_completion_set_model(completion, GTK_TREE_MODEL(store));
+    gtk_entry_completion_set_text_column (completion, 0);
+    
+    gtk_entrycompletion_demo.c
 
+  10). GtkRuler
+	GtkRuler 可以是一個垂直或水平外觀的尺規元件，您可以設定它的上下界，也可以讓它上面的游標跟隨滑鼠的移動，您可以使用gtk_hruler_new()或 
+	gtk_vruler_new()來建立水平或垂直尺規元件，使用gtk_ruler_set_metric()可以設定度量單位，可以設定的值有 GTK_PIXELS（像素）、
+	GTK_INCHES（英吋）、GTK_CENTIMETERS（公釐）。
+
+	您可以設定GtkRuler的範圍：
+	void gtk_ruler_set_range(GtkRuler *ruler,
+							 gdouble lower,
+							 gdouble upper,
+							 gdouble position,
+							 gdouble max_size);
+
+	lower與upper用來設定尺規的上下界，position設定目前尺規上小游標的顯示位置，max_size則是用來計算尺規上可以顯示刻度及數字的詳細程度時使用，
+	設定越小的數字，尺規刻度或數字會越細，設定越大的數字，尺規刻度或數字範圍會越大。
+
+	若要讓尺規上的游標跟隨滑鼠的位置而移動，首先滑鼠移動範圍的元件必須能接受滑鼠移動事件，例如設定GtkWindow接受滑鼠移動事件：
+	gtk_widget_set_events(window, GDK_POINTER_MOTION_MASK |
+								  GDK_POINTER_MOTION_HINT_MASK);
+
+	而滑鼠移動的motion_notify_event信號，必須連接到GtkRuler的motion_notify_event函式，例如：
+	#define EVENT_METHOD(i, x) GTK_WIDGET_GET_CLASS(i)->x
+
+	g_signal_connect_swapped(G_OBJECT(window), "motion_notify_event",
+							 G_CALLBACK(EVENT_METHOD(hrule, motion_notify_event)),
+							 hrule);
+
+	gtkruler_demo.c      
+
+  11). GtkAssistant
+	在應用程式安裝或是使用者註冊、設定時，可以提供使用者「精靈」（Wizard）進行一些選項設定與資訊填寫，在Step by Step的過程中，
+	提示使用者完成所有必要的選項設定或資訊填寫，精靈可以使用GtkAssistant類別來提供這個功能。
+
+	GtkAssistant中每一步的畫面，要參考至一個GtkWidget，所以您可 以事先設計好一個GtkWidget，當中進行元件置放、設定版面管理、
+	設定圖片、標題等，接著使用gtk_assistant_append_page ()附加為GtkAssistant的一個頁面，接著要使用gtk_assistant_set_page_type()設定好頁面類型：
+		GTK_ASSISTANT_PAGE_CONTENT：一般內容頁面
+		GTK_ASSISTANT_PAGE_INTRO：簡介頁面，通常是精靈的開始
+		GTK_ASSISTANT_PAGE_CONFIRM：確認頁面，通常是精靈的結束
+		GTK_ASSISTANT_PAGE_SUMMARY：顯示使用者的變更資訊
+		GTK_ASSISTANT_PAGE_PROGRESS：進度頁面，通常是精靈中的某個步驟
+
+
+	每個頁面預設的「下一步」（例如GTK_ASSISTANT_PAGE_INTRO或GTK_ASSISTANT_PAGE_PROGRESS等）或「套 用」（例如GTK_ASSISTANT_PAGE_CONFIRM）
+	預設是無法作用的，您要使用 gtk_assistant_set_page_complete()並設定complete參數為TRUE，「下一步」或「套用」按鈕才會有作用。
+	
+	gtkassistant_demo.c
+	
+  12). GtkCalendar
+	GtkCalendar 是個可以顯示月曆的元件，只要使用gtk_window_new()建立元件，就可以擁有一個完整的日曆元件顯示，若要設定日期，則可以使用 
+	gtk_calendar_select_month()設定年及月份，使用gtk_calendar_select_day()設定日。
+
+	使用gtk_calendar_select_month()設定時要注意的是，月份可設定的數值是從0到11，0表示1月，11表示12月，而使用gtk_calendar_select_day()
+	設定值則為1到31，或是設定為0表示不選取日。
+
+	您可以使用gtk_calendar_mark_day()、gtk_calendar_unmark_day()或 gtk_calendar_clear_marks()設定日期標記，若要得知被標記的日期資訊，
+	可以透過GtkCalendar結構的成員 num_marked_dates得知有幾天被標記了，marked_date為一個陣列，可用以得知哪一天被標記了，例如：
+	if (calendar->marked_date[26-1]) {
+		// 日期 26 被標記了
+	}
+
+	要注意的是，陣列索引值是從0開始，所以存取marked_date時，日期實際上要減去1，才會是對應的索引。
+
+	另外，Calendar成員中的month、year與selected_day分別表示目前看到的月、年及所選中的日，若要取得選中的年、月、日，則可以使用
+	gtk_calendar_get_date()函式，您必須提供三個變數的位址給它，執行過後，三個變數中就會儲存對應的年、月、日：
+	void gtk_calendar_get_date(GtkCalendar *calendar,
+							   guint *year,
+							   guint *month,
+							   guint *day);	
+    
+    gtkcalendar_demo.c
+    
+  13). GtkDrawingArea
+	GtkDrawingArea是一個用來進行繪圖的元件，繪圖的時候，是將之繪製在window成員上，在繪圖時要處理的事件有：
+		realize：元件被初始時
+		configure_event：元件尺寸改變時
+		expose_event：元件需要重繪時
+
+
+	要在GtkDrawingArea上繪圖，完整的函式內容可以參考 Drawing Primitives，基本上每個繪圖函式都會有一個GdkGC引數，它主要包括了前景色、
+	背景色、線寬等資訊，您從GtkDrawingArea的GtkStyle中可以取得對應的GdkGC資訊。    
+		
+    gtkdrawingarea_demo.c
+    
 7. 版面元件
   1). GtkNotebook
 	在版面配置上，可以會使用GtkNootbook來作功能頁的分類，它提供多個顯示頁，可以藉由上方的標籤來選擇所要的功能頁面
@@ -406,3 +498,258 @@
 	void gtk_statusbar_remove(GtkStatusbar *statusbar,
 							  guint context_id,
 							  guint message_id);	
+
+
+9. GLib
+  1).GLib定義的基本資料型態可概略分為四大類：
+    對應C的整數型態：gchar、gint、gshort、glong、gfloat、 gdouble。
+    對應C但更易於使用的型態：gpointer、gconstpointer、 guchar、guint、gushort、gulong。
+    不是標準C的新型態：gboolean、gsize、gssize。
+    保證在各平台長度相同的型態：gint8、guint8、gint16、 guint16、gint32、guint32、gint64、guint64.。
+
+  2). GTimer
+	GTimer是個計時器，當您需要量測兩個執行時間點的間隔時就可以使用，例如程式執行的開始與結束時間，您可以使用g_timer_new()建立一個新的GTimer，
+	若不再需要時則使用g_timer_destroy()加以毀棄。
+	在g_timer_new()之後，會自動標示啟動時間，您也可以使用g_timer_start()再度標示啟動時間，並於g_timer_elapsed()被呼叫時，傳回自啟動後的時間。
+	若使用g_timer_start()標示啟動時間，並使用g_timer_end()標示結束時間，則於g_timer_elapsed()被呼叫時，將傳回啟動後時間與結束時間的間隔，
+	在使用g_timer_end()標示結束時間之後，您可以使用g_timer_continue()重新繼續GTimer的計時。
+
+	g_timer_demo.c
+
+  3). Timeout 與 Idle
+	如果您要定時讓程式去作某件事，則可以使用g_timeout_add()或g_timeout_add_full()，g_timeout_add()的定義如下：
+	guint g_timeout_add(guint interval,
+						GSourceFunc function,
+						gpointer data);
+
+	第一個參數是時間間隔，以毫秒為單位，第二個參數是時間到的回呼函式，第三個參數是傳給回呼函式的資料，以 內建Signal 的發射與停止中的範例來說，
+	可以使用g_timeout_add()改寫如下而執行結果相同:
+	
+	g_timeout_demo.c
+
+	在回呼函式中，若傳回TRUE則繼續下一次計時，計時器的下一次計時，會是在回呼函式執行完畢後開始，傳回FALSE則計時器結束並自動銷毀，若您使用g_timeout_add_full()：
+	guint g_timeout_add_full(gint priority,
+							 guint interval,
+							 GSourceFunc function,
+							 gpointer data,
+							 GDestroyNotify notify);
+	第一個參數為時間到時的執行優先權，可以設定的優先權如下：
+		G_PRIORITY_HIGH
+		G_PRIORITY_DEFAULT（預設）
+		G_PRIORITY_HIGH_IDLE
+		G_PRIORITY_DEFAULT_IDLE
+		G_PRIORITY_LOW
+	最後一個參數則是計時器被移除時要執行的函式。
+
+	相對於計時重複執行某個動作，您可以使用g_idle_add()或g_idle_add_full()函式，讓程式在沒有什麼事情作的時候（例如沒有任何使用者操作，沒有任何需要運算的程式碼時），
+	也可以作一些事情，若使用g_idle_add()：
+	guint g_idle_add(GSourceFunc function,
+					 gpointer data);
+	第一個參數是回呼函式，第二個參數是傳遞給回呼函式的資料，例如下面這個範例，在使用者不作任何事時，就會執行指定的idle函式，而按下按鈕時就執行按鈕的回呼函式：
+
+	g_idle_demo.c
+		
+	同樣的，指定的idle函式若傳回FALSE則會移除idle功能，若是使用g_idle_add_full()：
+	guint g_idle_add_full(gint priority,
+						  GSourceFunc function,
+						  gpointer data,
+						  GDestroyNotify notify);
+
+  4). GIOChannel 與 檔案處理
+	在 基本檔案讀寫 中使用g_file_get_contents()、g_file_set_contents()函式，會對檔案作 整個讀取與整個寫入的動作，
+	若您想要對檔案作一些逐字元、逐行讀取、附加等操作，則可以使用GIOChannel。  
+	
+	g_io_channel_demo.c
+	
+	您使用的是g_io_channel_new_file()函式來建立GIOChannel，建立時可以使用"r"、"w"、"a"、"r+"、"w+"、"a+"等檔案模式，其作用與使用 fopen() 時的模式相同。
+	程式中使用的是g_io_channel_read_to_end()函式，一次讀取所有的檔案內容，您也可以使用 g_io_channel_read_chars()、g_io_channel_read_line()、 
+	g_io_channel_read_line_string()等函式，來對檔案作不同的讀取動作。
+
+  5). GIOChannel 與 Pipe
+	在Linux系統中，想要在兩個處理程序之間傳送資料，必須使用pipe，您可以使用pipe()函式來開啟pipe，您要傳入兩個File Descriptor：
+	gint parent_to_child[2];
+	if(pipe(parent_to_child) == -1) {
+		g_error("錯誤: %s\n", g_strerror(errno));
+		return 1;
+	}
+
+	開啟pipe之後，任何寫入parent_to_child[1]的資料，可以從parent_to_child[1]讀得。
+	在 GIOChannel 與 檔案處理 中， 看過如何使用GIOChannel 來處理檔案，在Linux中很多物件或資料都被視作檔案，所以您也可以利用GIOChannel來處理pipe的資料，
+	您可以加入watch，監看 GIOChannel中的資料，當有資料進行讀寫時會發出事件，您可利用callback函式予以處理。
+
+	您可以使用g_io_channel_unix_new()函式從pipe的File Descriptor中建立GIOChannel，例如，假設input[0]是pipe中寫出資料的File Descriptior，
+	可以如下建立GIOChannel：
+	GIOChannel *channel_read = g_io_channel_unix_new(input[0]);
+	if(channel_read == NULL) {
+		g_error("錯誤: 無法建立 GIOChannels！\n");
+	}
+
+	若要對GIOChannel進行監看，可以使用g_io_add_watch()函式，例如：
+	if(!g_io_add_watch(channel_read, G_IO_IN | G_IO_HUP,
+					  (GIOFunc) iochannel_read, (gpointer) data)) {
+		g_error("錯誤: 無法對 GIOChannel 進行監看\n");
+	}
+	第二個參數是監看的條件：
+		G_IO_IN：有待讀取資料
+		G_IO_OUT：可寫入資料
+		G_IO_PRI：有待讀取的緊急資料
+		G_IO_ERR：發生錯誤
+		G_IO_HUP：連接掛斷
+		G_IO_NVAL：無效請求，File Descriptor沒有開啟
+
+
+	第三個參數是監看條件發生時的callback函式，第四個參數是傳遞給callback的資料。
+
+	您可以使用g_io_channel_write_chars()函式寫入字元至GIOChannel中，例如：
+	GIOStatus ret_value = g_io_channel_write_chars(
+							channel, text->str, -1, &length, NULL);
+	if(ret_value == G_IO_STATUS_ERROR) {
+		g_error("錯誤: 無法寫入 pipe！\n");
+	}
+	else {
+		g_io_channel_flush(channel, NULL);
+	}
+
+	可使用g_io_channel_read_line()從GIOChannel中讀入資料：
+	ret_value = g_io_channel_read_line(channel, &message, &length, NULL, NULL);
+
+	if(ret_value == G_IO_STATUS_ERROR) {
+		g_error("錯誤: 無法讀取！\n");
+	}  
+
+	giochannel_pipe_demo.c
+	
+  6). GString
+	GString是GLib所提供的對字串處理的型態，GString保有字串的長度資訊，當您對GString進行插入、附加時，GString會自動調整長度，您也可以搭配一些GLib的函式來方便的處理字串。
+	GString的定義如下：
+	typedef struct {
+	  gchar *str;
+	  gsize len;   
+	  gsize allocated_len;
+	} GString;
+
+	str為null結尾的C字串之參考，len為目前字串不包括null結尾的長度，allocated_len為GString所配置的緩衝區長度，如果字串長度超出這個長度會自動重新配置。
+	
+	您有三種方式可以建立GString：
+	GString* g_string_new(const gchar *init);
+	GString* g_string_new_len(const gchar *init, gssize len);
+	GString* g_string_sized_new(gsize dfl_size);
+	第一個函式依所給的init字串來建立適當len的GString，並保留適當的allocated_len，建立的時候是將init字元複製至 GString中。第二個函式則是指定len來建立GString，
+	因為是自行指定，所以len必須超過init的長度。第三個函式則是指定 allocated_len來建立GString。	
+
+	字串的串接可以使用g_string_append()等函式，例如：
+	GString *string = g_string_new("哈囉！");
+	g_string_append(string, "GTK 程式設計！");
+	g_print("%s\n", string->str);
+
+	這一段程式碼會在主控台上顯示 "哈囉！GTK 程式設計！"（以UTF8撰寫程式的話可以顯示中文），若想要在前端附加則使用g_string_prepend()等函式，
+	若想要中間插入字元則使用g_string_insert()等函式。
+
+	除了單純的附加、插入字元等函式之外，以下還有幾個常用的操作字串的函式：
+	g_string_equal() 	判斷兩個GString的字元內容是否相同
+	g_string_ascii_up()或g_utf8_strup() 	轉換GString中的字元為小寫
+	g_string_ascii_down()或g_utf8_strdown() 	轉換GString中的字元為大寫
+	g_string_printf() 	如printf()一樣的方式，在GString中格式化字串
+
+  7). GArray、GPtrArray、GByteArray
+	在處理C的陣列時，您必須處理陣列長度的問題，您可以使用GLib的GArray，並搭配各個所提供的函式，在使用陣列上會更為方便，GArray的定義如下：
+	typedef struct {
+	  gchar *data;
+	  guint len;
+	} GArray;
+
+	您有兩種建立GArray的方式：
+	GArray* g_array_sized_new(gboolean zero_terminated,
+							  gboolean clear_,
+							  guint element_size,
+							  guint reserved_size);
+
+	GArray* g_array_new(gboolean zero_terminated,
+						gboolean clear_,
+						guint element_size);
+
+	g_array_sized_new()的第一個參數 zero_terminated設定為TRUE的話，會加入最後一個額外元素，全部的位元都設定為0，clear_設定為TRUE的話，
+	陣列的全部元素會 設定為0，element_size則是用來設定每個元素的長度，reserved_size則是用以設定陣列的長度，g_array_new()則是巨集(macro)定義的簡化版本，
+	預設長度為0，若加入新的元素，則自動增加陣列長度。  
+	
+	搭配GArray的函式還有g_array_remove_index()、g_array_sort()等，您可以參考 Arrays 的說明。
+
+	與GArray類似的是GPtrArray，只不過GArray儲存的是數值（若是structs，則會複製至GArray中），而GPtrArray儲存的是指標，GPtrArray的定義如下：
+	typedef struct {
+	  gpointer *pdata;
+	  guint     len;
+	} GPtrArray;
+	
+	GByteArray則允許您儲存guint8的資料，用於儲存位元組資料，為GArray的一個簡化形式，其定義如下：
+	typedef struct {
+	  guint8 *data;
+	  guint len;
+	} GByteArray;
+
+  8). GSList、GList
+	GSList是一個單向鏈結（Link）的節點，其定義如下：
+	typedef struct {
+	  gpointer data;
+	  GSList *next;
+	} GSList;
+
+	data是節點資料（物件）的位址資訊，next是下一個節點資料的位址資訊，搭配 GSList 的相關函式，您可以簡單的進行鏈結節點的附加、插入、刪除等動作，
+	例如使用g_slist_append()、g_slist_prepend()附加節點，使用g_slist_sort()進行排序等。
+	
+	gslist_demo.c
+
+	GList則是雙向鏈結，其定義如下：
+	typedef struct {
+	  gpointer data;
+	  GList *next;
+	  GList *prev;
+	} GList;
+
+	prev是指向前一個節點
+
+  9). GHashTable
+	GHashTable可以讓您以雜湊表的方式來儲存資料，儲存時指定Key演算出Hash值以決定資料儲存位置，要取回資料，也是指定Key演算出資料儲存位置，以快速取得資料。
+	簡單的說，您將GHashTable當作一個有很多間房間的房子，每個房間的門有一把鑰匙，您將資料儲存至房間中時，要順便擁有一把鑰匙，下次要取回資料時，就是根據這把鑰匙取得。
+	您可以使用g_hash_table_new()來建立GHashTable：
+	GHashTable* g_hash_table_new(GHashFunc hash_func,
+								 GEqualFunc key_equal_func);
+
+	g_hash_table_new()要指定一個演算Hash值的函式，GLib提供了如g_int_hash()、g_str_hash()函式可以直接使用，您也可以自訂自己的演算Hash值的函式，例如：
+	guint hash_func(gconstpointer key) {
+		...
+		return ...;
+	}
+
+	演算出Hash是決定儲存的位置，接下來要確認Key的相等性，GLib提供了如g_int_equal()及g_str_equal()函式可直接使用，同樣的，您也可以自訂函式：
+	gboolean key_equal_func(gconstpointer a, gconstpointer b) {
+		...
+		return ...;
+	}
+
+	ghashtable_demo.c
+	
+  10). GTree 與 GNode
+	gtree_demo.c  	
+
+	這個程式會建立一個平衡二元樹，利用指定的key_compare_func比較Key的大小，在這邊利用 g_strcmp0()來比較字串順序，程式中插入三筆資料，
+	插入的資料會自動依Key排序，所以取回時會是排序後的結果：
+	key     : caterpillar
+	value   : caterpillar's message!!
+
+	key     : justin
+	value   : justin's message!!
+
+	key     : momor
+	value   : momor's message!!
+
+	GNode則是另一種允許您建立任意分枝節點的樹結構，其定義如下：
+	typedef struct {
+	  gpointer data;
+	  GNode *next;
+	  GNode *prev;
+	  GNode *parent;
+	  GNode *children;
+	} GNode;
+
+	其中parent、children為父子節點，prev、next是兄弟節點	
+  
