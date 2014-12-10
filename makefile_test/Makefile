@@ -33,7 +33,7 @@ export SHELL=/usr/bin/env bash -c '. shell.sh; eval "$$2"' --
 NO_TRACE_MAKE := make
 
 .PHONY: all test stamp clean
-all: test foo stamp test2 test3
+all: test foo stamp test2 test3 .obj/1.txt
 	@echo "all"
 	@echo "$(o)"
 	@echo $(PATH)
@@ -155,3 +155,14 @@ $(foreach __pass2_module,test2 test3,\
 
 clean :
 	-rm -rf .obj
+	
+.obj/1.txt: FORCE	
+	@echo -e "\033[34;1malways out of date" 
+	@mkdir -p $(@D)
+	@touch $@
+	@ls -l $@
+	@echo -e "\033[0m"
+
+# A target that is always out of date.
+FORCE:
+.PHONY: FORCE
