@@ -33,7 +33,7 @@ export SHELL=/usr/bin/env bash -c '. shell.sh; eval "$$2"' --
 NO_TRACE_MAKE := make
 
 .PHONY: all test stamp clean
-all: test foo stamp test2 test3 .obj/1.txt
+all: test foo stamp .obj/1.txt
 	@echo "all"
 	@echo "$(o)"
 	@echo $(PATH)
@@ -145,13 +145,6 @@ endef
 
 $(eval $(call stampfile))
 all: .obj/stamp
-
-#导入两次build-binary.mk
-#产生test2和test3目标依赖
-$(foreach __pass2_module,test2 test3,\
-    $(eval LOCAL_MODULE := $(__pass2_module))\
-    $(eval include build-binary.mk)\
-)
 
 clean :
 	-rm -rf .obj

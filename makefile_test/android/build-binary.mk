@@ -13,12 +13,20 @@
 #  因为在eval include过程中, PRIVATE_MODULE := $(LOCAL_MODULE)中的$(LOCAL_MODULE)被替换为test2 or test3
 #  所以make过程中，PRIVATE_MODULE被赋值为test2 or test3
 #
+$(call module-restore-locals,$(LOCAL_MODULE))
+
+$(call ndk_log,"build $(LOCAL_MODULE)")
+
+# strip LOCAL_PATH
+LOCAL_PATH := $(strip $(LOCAL_PATH))
 .PHONY: $(LOCAL_MODULE)
 $(LOCAL_MODULE): PRIVATE_MODULE := $(LOCAL_MODULE)	
 $(LOCAL_MODULE): $(LOCAL_MODULE)-test
+	@echo "=========="
+	@echo "target : $@" 
 	@echo "local = $(LOCAL_MODULE)" 
-	@echo "local-@ = $@" 
 	@echo "private = $(PRIVATE_MODULE)" 
 
 $(LOCAL_MODULE)-test:
-	@echo $@
+	@echo "======================="
+	@echo "target : $@" 
