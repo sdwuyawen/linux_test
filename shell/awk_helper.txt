@@ -1,0 +1,232 @@
+1. Awk脚本的代码结构很简单，就是一系列的模式（pattern）和行为（action）：
+# comment
+Pattern1 { ACTIONS; }
+
+# comment
+Pattern2 { ACTIONS; }
+
+# comment
+Pattern3 { ACTIONS; }
+
+# comment
+Pattern4 { ACTIONS; }
+
+扫描文档的每一行时都必须与每一个模式进行匹配比较，而且一次只匹配一个模式。那么，如果我给出一个包含以下内容的文件：
+this is line 1
+
+this is line 2
+
+this is line 1 这行就会与Pattern1进行匹配。如果匹配成功，就会执行ACTIONS。然后this is line 1 会和Pattern2进行匹配。如果匹配失败，它就会跳到Pattern3进行匹配，以此类推。
+一旦所有的模式都匹配过了，this is line 2 就会以同样的步骤进行匹配。其他的行也一样，直到读取完整个文件。
+简而言之，这就是Awk的运行模式
+
+2. 数据类型
+Awk仅有两个主要的数据类型：字符串和数字。即便如此，Awk的字符串和数字还可以相互转换。字符串能够被解释为数字并把它的值转换为数字值。如果字符串不包含数字，它就被转换为0.
+它们都可以在你代码里的ACTIONS部分使用 = 操作符给变量赋值。我们可以在任意时刻、任意地方声明和使用变量，也可以使用未初始化的变量，此时他们的默认值是空字符串：“”。
+最后，Awk有数组类型，并且它们是动态的一维关联数组。它们的语法是这样的：var[key] = value 。Awk可以模拟多维数组，但无论怎样，这是一个大的技巧（big hack）。
+
+3. 模式
+可以使用的模式分为三大类：正则表达式、布尔表达式和特殊模式。
+
+3.1. 正则表达式和布尔表达式
+你使用的Awk正则表达式比较轻量。它们不是Awk下的PCRE（但是gawk可以支持该库——这依赖于具体的实现！请使用 awk –version查看），然而，对于大部分的使用需求已经足够了：
+/admin/ { ... } # any line that contains 'admin'
+/^admin/ { ... } # lines that begin with 'admin'
+/admin$/ { ... } # lines that end with 'admin'
+/^[0-9.]+ / { ... } # lines beginning with series of numbers and periods
+/(POST|PUT|DELETE)/ # lines that contain specific HTTP verbs
+
+注意，模式不能捕获特定的组（groups）使它们在代码的ACTIONS部分执行。模式是专门匹配内容的。
+布尔表达式与PHP或者Javascript中的布尔表达式类似。特别的是，在awk中可以使用&&（“与”）、||（“或”）、!（“非”）操作符。你几乎可以在所有类C语言中找到它们的踪迹。它们可以对常规数据进行操作。
+与PHP和Javascript更相似的特性是比较操作符，==，它会进行模糊匹配（fuzzy matching）。因此“23”字符串等于23，”23″ == 23 表达式返回true。!= 操作符同样在awk里使用，并且别忘了其他常见的操作符：>，<，>=，和<=。
+
+你同样可以混合使用它们：布尔表达式可以和常规表达式一起使用。 /admin/ || debug == true 这种用法是合法的，并且在遇到包含“admin”单词的行或者debug变量等于true时该表达式就会匹配成功。
+注意，如果你有一个特定的字符串或者变量要与正则表达式进行匹配，~ 和!~ 就是你想要的操作符。 这样使用它们：string ~ /regex/ 和 string !~ /regex/。
+同样要注意的是，所有的模式都只是可选的。一个包含以下内容的Awk脚本：
+{ ACTIONS }
+
+对输入的每一行都将会简单地执行ACTIONS。
+
+3.2. 特殊的模式
+在Awk里有一些特殊的模式，但不是很多。
+第一个是BEGIN，它仅在所有的行都输入到文件之前进行匹配。这是你可以初始化你的脚本变量和所有种类的状态的主要地方。
+另外一个就是END。就像你可能已经猜到的，它会在所有的输入都被处理完后进行匹配。这使你可以在退出前进行清除工作和一些最后的输出。
+最后一类模式，要把它进行归类有点困难。它处于变量和特殊值之间，我们通常称它们为域（Field）。而且名副其实。
+
+4. 域
+使用直观的例子能更好地解释域：
+# According to the following line
+#
+# $1 $2 $3
+# 00:34:23 GET /foo/bar.html
+# _____________ _____________/
+# $0
+
+# Hack attempt?
+/admin.html$/ && $2 == "DELETE" {
+print "Hacker Alert!";
+}
+
+域（默认地）由空格分隔。$0域代表了一整行的字符串。 $1域是第一块字符串（在任何空格之前）， $2域是后一块，以此类推。
+一个有趣的事实（并且是在大多是情况下我们要避免的事情），你可以通过给相应的域赋值来修改相应的行。
+例如，如果你在一个块里执行 $0 = “HAHA THE LINE IS GONE”，那么现在下一个模式将会对修改后的行进行操作而不是操作原始的行。其他的域变量都类似。
+
+5. 行为
+这里有一堆可用的行为（possible actions），但是最常用和最有用的行为（以我的经验来说）是：
+{ print $0; } # prints $0. In this case, equivalent to 'print' alone
+{ exit; } # ends the program
+{ next; } # skips to the next line of input
+{ a=$1; b=$0 } # variable assignment
+{ c[$1] = $2 } # variable assignment (array)
+
+{ if (BOOLEAN) { ACTION }
+else if (BOOLEAN) { ACTION }
+else { ACTION }
+}
+{ for (i=1; i<x; i++) { ACTION } }
+{ for (item in c) { ACTION } }
+
+这些内容将会成为你的Awk工具箱的主要工具，在你处理日志之类的文件时你可以随意地使用它们。
+Awk里的变量都是全局变量。无论你在给定的块里定义什么变量，它对其他的块都是可见的，甚至是对每一行都是可见的。这严重限制了你的Awk脚本大小，不然他们会造成不可维护的可怕结果。请编写尽可能小的脚本。
+
+6. 函数
+可以使用下面的语法来调用函数：
+{ somecall($2) }
+这里有一些有限的内置函数可以使用，所以我可以给出这些函数的通用文档（regular documentation）。
+用户定义的函数同样很简单：
+# function arguments are call-by-value
+function name(parameter-list) {
+ACTIONS; # same actions as usual
+}
+
+# return is a valid keyword
+function add1(val) {
+return val+1;
+}
+
+7. 特殊变量
+除了常规变量（全局的，可以在任意地方使用），这里还有一系列特殊的变量，它们的的作用有点像配置条目（configuration entries）：
+BEGIN { # Can be modified by the user
+FS = ","; # Field Separator
+RS = "n"; # Record Separator (lines)
+OFS = " "; # Output Field Separator
+ORS = "n"; # Output Record Separator (lines)
+}
+{ # Can't be modified by the user
+NF # Number of Fields in the current Record (line)
+NR # Number of Records seen so far
+ARGV / ARGC # Script Arguments
+}
+
+我把可修改的变量放在BEGIN里，因为我更喜欢在那重写它们。但是这些变量的重写可以放在脚本的任意地方然后在后面的行里生效。
+
+8. 示例
+以上的就是Awk语言的核心内容。我这里没有大量的例子，因为我趋向于使用Awk来完成快速的一次性任务。
+不过我依然有一些随身携带的脚本文件，用来处理一些事情和测试。我最喜欢的一个脚本是用来处理Erlang的崩溃转储文件，形如下面的：
+=erl_crash_dump:0.3
+Tue Nov 18 02:52:44 2014
+Slogan: init terminating in do_boot ()
+System version: Erlang/OTP 17 [erts-6.2] [source] [64-bit] [smp:8:8] [async-threads:10] [hipe] [kernel-poll:false]
+Compiled: Fri Sep 19 03:23:19 2014
+Taints:
+Atoms: 12167
+=memory
+total: 19012936
+processes: 4327912
+processes_used: 4319928
+system: 14685024
+atom: 339441
+atom_used: 331087
+binary: 1367680
+code: 8384804
+ets: 382552
+=hash_table:atom_tab
+size: 9643
+used: 6949
+...
+=allocator:instr
+option m: false
+option s: false
+option t: false
+=proc:<0.0.0>
+State: Running
+Name: init
+Spawned as: otp_ring0:start/2
+Run queue: 0
+Spawned by: []
+Started: Tue Nov 18 02:52:35 2014
+Message queue length: 0
+Number of heap fragments: 0
+Heap fragment data: 0
+Link list: [<0.3.0>, <0.7.0>, <0.6.0>]
+Reductions: 29265
+Stack+heap: 1598
+OldHeap: 610
+Heap unused: 656
+OldHeap unused: 468
+Memory: 18584
+Program counter: 0x00007f42f9566200 (init:boot_loop/2 + 64)
+CP: 0x0000000000000000 (invalid)
+=proc:<0.3.0>
+State: Waiting
+...
+=port:#Port<0.0>
+Slot: 0
+Connected: <0.3.0>
+Links: <0.3.0>
+Port controls linked-in driver: efile
+=port:#Port<0.14>
+Slot: 112
+Connected: <0.3.0>
+...
+
+产生下面的结果：
+
+$ awk -f queue_fun.awk $PATH_TO_DUMP
+MESSAGE QUEUE LENGTH: CURRENT FUNCTION
+======================================
+10641: io:wait_io_mon_reply/2
+12646: io:wait_io_mon_reply/2
+32991: io:wait_io_mon_reply/2
+2183837: io:wait_io_mon_reply/2
+730790: io:wait_io_mon_reply/2
+80194: io:wait_io_mon_reply/2
+...
+
+这是在Erlang进程里运行的函数列表，它们导致了mailboxe变得很庞大。脚本在这：
+
+# Parse Erlang Crash Dumps and correlate mailbox size to the currently running
+# function.
+#
+# Once in the procs section of the dump, all processes are displayed with
+# =proc:<0.M.N> followed by a list of their attributes, which include the
+# message queue length and the program counter (what code is currently
+# executing).
+#
+# Run as:
+#
+# $ awk -v threshold=$THRESHOLD -f queue_fun.awk $CRASHDUMP
+#
+# Where $THRESHOLD is the smallest mailbox you want inspects. Default value
+# is 1000.
+BEGIN {
+if (threshold == "") {
+threshold = 1000 # default mailbox size
+}
+procs = 0 # are we in the =procs entries?
+print "MESSAGE QUEUE LENGTH: CURRENT FUNCTION"
+print "======================================"
+}
+
+# Only bother with the =proc: entries. Anything else is useless.
+procs == 0 && /^=proc/ { procs = 1 } # entering the =procs entries
+procs == 1 && /^=/ && !/^=proc/ { exit 0 } # we're done
+
+# Message queue length: 1210
+# 1 2 3 4
+/^Message queue length: / && $4 >= threshold { flag=1; ct=$4 }
+/^Message queue length: / && $4 < threshold { flag=0 }
+
+# Program counter: 0x00007f5fb8cb2238 (io:wait_io_mon_reply/2 + 56)
+# 1 2 3 4 5 6
+flag == 1 && /^Program counter: / { print ct ":", substr($4,2) }

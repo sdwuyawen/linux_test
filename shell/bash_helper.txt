@@ -1,0 +1,210 @@
+
+技巧一、用命令行往文件的顶部添加文字
+每次我都会重新寻找这个命令的写法。下面就是如何使用sed往一个文件顶部添加一行的方法：
+sed -i '1s/^/line to insert\n/' path/to/file/you/want/to/change.txt
+
+技巧二、用命令行往配置文件里插入多行文本
+这种方法非常简单，很多人都知道，下面就是如何用命令行将(>>)多行文本插入一个文件中。这里使用的是“here document”语法，它能让你通过块文本符号来将段落插入文件中，通常用的符合是EOF(意思是 “End Of File”):
+cat >> path/to/file/to/append-to.txt << "EOF"
+export PATH=$HOME/jdk1.8.0_31/bin:$PATH
+export JAVA_HOME=$HOME/jdk1.8.0_31/
+EOF
+
+两个”EOF“之间的所有内容都会被添加到文件中。
+
+技巧三、用命令行递归方式全局搜索目录文件和替换
+如果你使用Eclipse，ItelliJ或其它IDE，这些工具的强大重构能力也许会让你轻松实现很多事情。但我估计很多时候你的开发环境中没有这样的集成工具。
+如何使用命令行对一个目录进行递归搜索和替换？别想Perl语言，你可以使用find and sed。感谢Stack Overflow提供的指导：
+# OSX version
+find . -type f -name '*.txt' -exec sed -i '' s/this/that/g {} +
+
+使用了一段时间后，我总结写出了一个函数，添加入了 .bashrc ，就像下面这样：
+function sr {
+    find . -type f -exec sed -i '' s/$1/$2/g {} +
+}
+
+你可以像这样使用它：
+sr wrong_word correct_word
+
+技巧四、用命令行在vim和Dropbox里开启一个临时文件
+我过去喜欢用Emacs里的scratch facility功能。也经常用Vim快速创建临时文件。下面这两个函数是使用openssl生成随机的字符串作为文件名：
+function sc {
+  gvim ~/Dropbox/$(openssl rand -base64 10 | tr -dc 'a-zA-Z').txt
+}
+
+function scratch {
+  gvim ~/Dropbox/$(openssl rand -base64 10 | tr -dc 'a-zA-Z').txt
+}
+
+在命令行窗口输入sc或scratch，一个新的gvim或macvim窗口就会弹出来，里面会加载一个随机文件名的临时文件。
+
+技巧五、用命令行下载文件，包括链接转向、HTTPS和安全加密等情况。
+下载一个页面输出到终端，跟随链接转向，忽略安全异常：
+curl -Lks <some-url>
+下载一个链接，跟随链接转向，忽略安全异常：
+curl -OLks <some-url/to/a/file.tar.gz>
+这里用了很多参数，你可以阅读这个简单的curl文档来了解它们。
+
+技巧六、Bashmarks
+你还没有在.bashrc里使用bashmarks吗？还在等待什么？它真的非常有用。它能帮你保持历史操作，跳回到你经常使用的目录。下面是我的配置文件里脚本，但我想上面的链接能提供你更多技巧：
+# USAGE:
+# s bookmarkname - saves the curr dir as bookmarkname
+# g bookmarkname - jumps to the that bookmark
+# g b[TAB] - tab completion is available
+# l - list all bookmarks
+
+# save current directory to bookmarks
+touch ~/.sdirs
+function s {
+  cat ~/.sdirs | grep -v "export DIR_$1=" > ~/.sdirs1
+  mv ~/.sdirs1 ~/.sdirs
+  echo "export DIR_$1=$PWD" >> ~/.sdirs
+}
+
+# jump to bookmark
+function g {
+  source ~/.sdirs
+  cd $(eval $(echo echo $(echo \$DIR_$1)))
+}
+
+# list bookmarks with dirnam
+function l {
+  source ~/.sdirs
+  env | grep "^DIR_" | cut -c5- | grep "^.*="
+}
+# list bookmarks without dirname
+function _l {
+  source ~/.sdirs
+  env | grep "^DIR_" | cut -c5- | grep "^.*=" | cut -f1 -d "="
+}
+
+# completion command for g
+function _gcomp {
+    local curw
+    COMPREPLY=()
+    curw=${COMP_WORDS[COMP_CWORD]}
+    COMPREPLY=($(compgen -W '`_l`' -- $curw))
+    return 0
+}
+
+# bind completion command for g to _gcomp
+complete -F _gcomp g
+
+技巧七、从格式化输出里提取一列(我最常使用的awk技巧)
+我几乎天天都会使用它。真的。经常会有一些输出，我只需要其中的第二列，或第三列，下面这个命令就能做到这些：
+#Sample output of git status -s command:
+$ git status -s
+
+M .bashrc
+?? .vim/bundle/extempore/
+
+# Remove status code from git status and just get the file names
+$ git status -s | awk '{print $2}'
+
+.bashrc
+.vim/bundle/extempore/
+
+为什么不写个函数，让我们随时都可以用呢？
+function col {
+  awk -v col=$1 '{print $col}'
+}
+
+这使得提取列非常容易，比如，你不想要第一列？简单：
+$ git status -s | col 2
+
+.bashrc
+.vim/bundle/extempore/
+
+技巧八、忽略头x个词
+我对xargs很着迷，我感觉它就像一把快刀。但有时候用它获得的结果需要调整一下，也许需要取得一些值。例如，你想去掉下面文件影像里的一些信息：
+function skip {
+    n=$(($1 + 1))
+    cut -d' ' -f$n-
+}
+
+下面是如何使用它：
+使用 docker images 得到下面的输出：
+
+$ docker images
+REPOSITORY                   TAG         IMAGE ID            CREATED             VIRTUAL SIZE
+<none>                       <none>      65a9e3ef7171        3 weeks ago         1.592 GB
+<none>                       <none>      7c01ca6c30f2        3 weeks ago         11.1 MB
+<none>                       <none>      9518620e6a0e        3 weeks ago         7.426 MB
+<none>                       <none>      430707ee7fe8        3 weeks ago         7.426 MB
+boot2docker/boot2docker      latest      1dbd7ebffe31        3 weeks ago         1.592 GB
+spaceghost/tinycore-x86_64   5.4         f47686df00df        7 weeks ago         11.1 MB
+durdn/bithub                 latest      df1e39df8dbf        8 weeks ago         100.9 MB
+<none>                       <none>      c5e6cf38d985        8 weeks ago         100.9 MB
+nginx                        latest      e426f6ef897e        12 weeks ago        100.2 MB
+zoobab/tinycore-x64          latest      8cdd417ec611        8 months ago        7.426 MB
+scratch                      latest      511136ea3c5a        20 months ago       0 B
+
+使用上面的函数，你可以获取所有的IDs：
+$ docker images | col 3
+
+IMAGE
+65a9e3ef7171
+7c01ca6c30f2
+9518620e6a0e
+430707ee7fe8
+1dbd7ebffe31
+f47686df00df
+df1e39df8dbf
+c5e6cf38d985
+e426f6ef897e
+8cdd417ec611
+511136ea3c5a
+
+进一步处理：
+docker images | col 3 | xargs
+IMAGE 65a9e3ef7171 7c01ca6c30f2 9518620e6a0e 430707ee7fe8 1dbd7ebffe31 f47686df00df df1e39df8dbf c5e6cf38d985 e426f6ef897e 8cdd417ec611 511136ea3c5a
+
+但前面的”IMAGE”字符我也想去掉：
+docker images | col 3 | xargs | skip 1
+
+65a9e3ef7171 7c01ca6c30f2 9518620e6a0e 430707ee7fe8 1dbd7ebffe31 f47686df00df df1e39df8dbf c5e6cf38d985 e426f6ef897e 8cdd417ec611 511136ea3c5a
+
+完整的写下来就是这样：
+docker rmi $(docker images | col 3 | xargs | skip 1)
+
+技巧九、创建自己的命令包
+在bash里，你可以很容易的创建自己的命令组件，你可以看一下下面我写的：
+function dur {
+  case $1 in
+  clone|cl)
+    git clone git@bitbucket.org:nicolapaolucci/$2.git
+    ;;
+  move|mv)
+    git remote add bitbucket git@bitbucket.org:nicolapaolucci/$(basename $(pwd)).git
+    git push --all bitbucket
+    ;;
+  trackall|tr)
+    #track all remote branches of a project
+    for remote in $(git branch -r | grep -v master ); do git checkout --track $remote ; done
+    ;;
+  key|k)
+    #track all remote branches of a project
+    ssh $2 'mkdir -p .ssh && cat >> .ssh/authorized_keys' < ~/.ssh/id_rsa.pub
+    ;;
+  fun|f)
+    #list all custom bash functions defined
+    typeset -F | col 3 | grep -v _ | xargs | fold -sw 60
+    ;;
+  def|d)
+    #show definition of function $1
+    typeset -f $2
+    ;;
+  help|h|*)
+    echo "[dur]dn shell automation tools"
+    echo "commands available:"
+    echo " [cl]one, [mv|move]"
+    echo " [f]fun lists all bash functions defined in .bashrc"
+    echo " [def] <fun> lists definition of function defined in .bashrc"
+    echo " [k]ey <host> copies ssh key to target host"
+    echo " [tr]ackall], [h]elp"
+    ;;
+  esac
+}
+
+通过上面的脚本，我可以将ssh key拷贝到任何网站服务器——只需要键入 dur key
+user@somehost.
