@@ -1,0 +1,318 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+
+
+<!-- DDX包 有一个类型属性 -->
+<DDXPacket type="ack">
+
+    <!-- xml版本-->
+    <Version type="string">8</Version>
+    <!-- 页面模块-->
+    <Pageinfo type="array"  >
+       <!--页面1的信息-->
+       <Page type="array" >
+          <Widget type="strut">
+              <IconPosition type="string">page0_item0</IconPosition>
+	  	      <Iconname type="string">page0_img0.png</Iconname>
+              <Apkname type="string">ad</Apkname>
+	  	      <ApkPck type="string">ad</ApkPck>
+	  	      <IconVersion type="string">0</IconVersion>
+	      </Widget>
+		  <Widget type="strut">
+              <IconPosition type="string">page0_item1</IconPosition>
+	  	      <Iconname type="string">page0_img1.png</Iconname>
+              <Apkname type="string">togic_livevideo2.apk</Apkname>
+	  	      <ApkPck type="string">com.togic.livevideo</ApkPck>
+	  	      <IconVersion type="string">1</IconVersion>
+	      </Widget>
+		  <Widget type="strut">
+              <IconPosition type="string">page0_item2</IconPosition>
+	  	      <Iconname type="string">page0_img2.png</Iconname>
+              <Apkname type="string">suningebuy.apk</Apkname>
+	          <ApkPck type="string">com.suning.tv.ebuy</ApkPck>
+	  	      <IconVersion type="string">4</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page0_item3</IconPosition>
+	  	      <Iconname type="string">page0_img3.png</Iconname>
+          	  <Apkname type="string">shafaguanjia.apk</Apkname>
+	          <ApkPck type="string">com.shafa.market</ApkPck>
+	  	      <IconVersion type="string">1</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page0_item4</IconPosition>
+	  	      <Iconname type="string">page0_img4.png</Iconname>
+          	  <Apkname type="string">baby.apk</Apkname>
+	   	      <ApkPck type="string">com.ddx.baby.main</ApkPck>
+	  	      <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page0_item5</IconPosition>
+	  	      <Iconname type="string">page0_img5.png</Iconname>
+          	  <Apkname type="string">timetop_903_01_1.4.7.apk</Apkname>
+	  		  <ApkPck type="string">com.ddx.webview.activity</ApkPck>
+	  	      <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page0_item6</IconPosition>
+	  	      <Iconname type="string">page0_img6.png</Iconname>
+          	  <Apkname type="string">yinyuetaiTV.apk</Apkname>
+	  	      <ApkPck type="string">com.yinyuetai.yytv.tvbox</ApkPck>
+	  	      <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page0_item7</IconPosition>
+	  	      <Iconname type="string">page0_img7.png</Iconname>
+          	  <Apkname type="string">duomimusic.apk</Apkname>
+              <ApkPck type="string">com.duomi.androidtv</ApkPck>
+	  	      <IconVersion type="string">1</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page0_item8</IconPosition>
+	  	      <Iconname type="string">page0_img8.png</Iconname>
+          	  <Apkname type="string">tt_appstore.apk</Apkname>
+	  	      <ApkPck type="string">com.ddx.applicationstore</ApkPck>
+	  	      <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      
+    	</Page>
+	<!--页面2的信息-->
+    	<Page type="array" >
+          <Widget type="strut">
+            <IconPosition type="string">page1_item0</IconPosition>
+	  		<Iconname type="string">page1_img0.png</Iconname>
+          	  <Apkname type="string">dianshijialiulanqi.apk</Apkname>
+	  	      <ApkPck type="string">com.fanshi.tvbrowser</ApkPck>
+	  	    <IconVersion type="string">1</IconVersion>
+	  	  </Widget>
+	  	  <Widget type="strut">
+              <IconPosition type="string">page1_item1</IconPosition>
+	  		<Iconname type="string">page1_img1.png</Iconname>
+          	<Apkname type="string">wanhuatongshipin.apk</Apkname>
+	  		<ApkPck type="string">cn.box.cloudbox</ApkPck>
+	  	    <IconVersion type="string">1</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page1_item2</IconPosition>
+	  		<Iconname type="string">page1_img2.png</Iconname>
+          	<Apkname type="string">dianshiqq.apk</Apkname>
+	   		<ApkPck type="string">com.tencent.QQVideo</ApkPck>
+	  	    <IconVersion type="string">1</IconVersion>
+	   	  </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page1_item3</IconPosition>
+	  		<Iconname type="string">page1_img3.png</Iconname>
+          	<Apkname type="string">comslanissuetv.apk</Apkname>
+	        <ApkPck type="string">com.slanissue.tv.erge</ApkPck>
+	  	    <IconVersion type="string">2</IconVersion>
+	      </Widget>
+	   	  <Widget type="strut">
+              <IconPosition type="string">page1_item4</IconPosition>
+	  		<Iconname type="string">page1_img4.png</Iconname>
+          	<Apkname type="string">meishijie.apk</Apkname>
+	  		<ApkPck type="string">com.meishi_tv</ApkPck>
+	  	    <IconVersion type="string">1</IconVersion>
+	   	  </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page1_item5</IconPosition>
+	  		<Iconname type="string">page1_img5.png</Iconname>
+          	<Apkname type="string">changdu.apk</Apkname>
+	  		<ApkPck type="string">viva.android.tv</ApkPck>
+	  	    <IconVersion type="string">1</IconVersion>
+	  	  </Widget>
+	  	  <Widget type="strut">
+              <IconPosition type="string">page1_item6</IconPosition>
+	        <Iconname type="string">page1_img6.png</Iconname>
+          	<Apkname type="string">yuhedianbo.apk</Apkname>
+	  		<ApkPck type="string">com.ott.v719.vod</ApkPck>
+	  	    <IconVersion type="string">1</IconVersion>
+	   	  </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page1_item7</IconPosition>
+	  		<Iconname type="string">page1_img7.png</Iconname>
+          	<Apkname type="string">dianshimao.apk</Apkname>
+	   		<ApkPck type="string">com.moretv.android</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page1_item8</IconPosition>
+	  		<Iconname type="string">page1_img8.png</Iconname>
+          	<Apkname type="string">quanjuhe.apk</Apkname>
+	        <ApkPck type="string">com.vst.itv52.v1</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	   	  </Widget>
+	   	  <Widget type="strut">
+              <IconPosition type="string">page1_item9</IconPosition>
+	  		<Iconname type="string">page1_img9.png</Iconname>
+          	<Apkname type="string">wangyixinwen.apk</Apkname>
+	  		<ApkPck type="string">com.netease.newsreader.tv</ApkPck>
+	  	    <IconVersion type="string">1</IconVersion>
+	   	  </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page1_item10</IconPosition>
+	  		<Iconname type="string">page1_img10.png</Iconname>
+          	<Apkname type="string">lekan.apk</Apkname>
+	  		<ApkPck type="string">com.lekan.tv.kids.activity</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	  	  </Widget>
+	  	  <Widget type="strut">
+              <IconPosition type="string">page1_item11</IconPosition>
+	  		<Iconname type="string">page1_img11.png</Iconname>
+          	<Apkname type="string">wygkk.apk</Apkname>
+	  		<ApkPck type="string">com.netease.vopen.tablet</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	   	  </Widget>
+	   	  <Widget type="strut">
+              <IconPosition type="string">page1_item12</IconPosition>
+	  		<Iconname type="string">page1_img12.png</Iconname>
+          	<Apkname type="string">tuzishipin.apk</Apkname>
+	   		<ApkPck type="string">com.luxtone.tuzi3</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	   	  </Widget>
+    	</Page>
+	<!--页面3的信息-->
+    	<Page type="array" >
+    	    <!-- 经典游戏 -->
+          <Widget type="strut">
+            <IconPosition type="string">page2_item0</IconPosition>
+	  		<Iconname type="string">page2_img0.png</Iconname>
+          	<Apkname type="string">youledoudizhu.apk</Apkname>
+	        <ApkPck type="string">com.youjoy.strugglelandlord</ApkPck>
+	  	    <IconVersion type="string">2</IconVersion>
+	  	  </Widget>
+	  	  <Widget type="strut">
+            <IconPosition type="string">page2_item1</IconPosition>
+	  		<Iconname type="string">page2_img1.png</Iconname>
+          	<Apkname type="string">timetop_903_01_1.4.7.apk</Apkname>
+	  		<ApkPck type="string">com.ddx.webview.activity</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	   	  </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page2_item2</IconPosition>
+	  		<Iconname type="string">page2_img2.png</Iconname>
+          	<Apkname type="string">xiaotongxiechuangguan.apk</Apkname>
+	   		<ApkPck type="string">com.gx.runningboyiTV</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page2_item3</IconPosition>
+	  		<Iconname type="string">page2_img3.png</Iconname>
+          	<Apkname type="string">nuhaikuangsha.apk</Apkname>
+	        <ApkPck type="string">com.phoenix.fish.tvhd</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	   	  <Widget type="strut">
+              <IconPosition type="string">page2_item4</IconPosition>
+	  	    <Iconname type="string">page2_img4.png</Iconname>
+          	<Apkname type="string">xiaosanchuanqi.apk</Apkname>
+	  	    <ApkPck type="string">com.game.threeGame</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page2_item5</IconPosition>
+	  		<Iconname type="string">page2_img5.png</Iconname>
+          	<Apkname type="string">zhilifangkuai.apk</Apkname>
+	        <ApkPck type="string">com.trans.bloxorz</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	   	  <Widget type="strut">
+              <IconPosition type="string">page2_item6</IconPosition>
+	  	    <Iconname type="string">page2_img6.png</Iconname>
+          	<Apkname type="string">heibaiqi.apk</Apkname>
+	  	    <ApkPck type="string">com.trans.othello.disney</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+              <IconPosition type="string">page2_item7</IconPosition>
+	  	    <Iconname type="string">page2_img7.png</Iconname>
+          	<Apkname type="string">jibaobao.apk</Apkname>
+	  	    <ApkPck type="string">com.bomber.babychickfour</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+    	</Page>
+	<!--页面4的信息-->
+    	<Page type="array" >
+          <Widget type="strut">
+		  <!-- 
+		  此处为我的应用，不用配置
+		  -->
+            <IconPosition type="string">page3_item0</IconPosition>
+	  	    <Iconname type="string">page3_img0.png</Iconname>
+          	<Apkname type="string">wodeyingyong    </Apkname>
+	  	    <ApkPck type="string">    </ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+            <IconPosition type="string">page3_item1</IconPosition>
+	  	    <Iconname type="string">page3_img1.png</Iconname>
+          	<Apkname type="string">360.apk</Apkname>
+	  	    <ApkPck type="string">com.qihoo360.mobilesafe_tv</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+            <IconPosition type="string">page3_item2</IconPosition>
+	  	    <Iconname type="string">page3_img2.png</Iconname>
+          	<Apkname type="string">liulanwenjianjia.apk</Apkname>
+	   	    <ApkPck type="string">com.softwinner.TvdFileManager</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+            <IconPosition type="string">page3_item3</IconPosition>
+	  		<Iconname type="string">page3_img3.png</Iconname>
+          	<Apkname type="string">miracast.apk</Apkname>
+	        <ApkPck type="string">com.softwinner.miracastReceiver</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	   	  </Widget>
+	   <Widget type="strut">
+            <IconPosition type="string">page3_item4</IconPosition>
+	  		<Iconname type="string">page3_img4.png</Iconname>
+          	<Apkname type="string">wanlinian.apk</Apkname>
+	  		<ApkPck type="string">com.bestv.ott.local.clock</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	   </Widget>
+	   <Widget type="strut">
+            <IconPosition type="string">page3_item5</IconPosition>
+	  	    <Iconname type="string">page3_img5.png</Iconname>
+          	<Apkname type="string">MXPlayer.apk</Apkname>
+	  	    <ApkPck type="string">com.mxtech.videoplayer.pro</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+            <IconPosition type="string">page3_item6</IconPosition>
+	  	    <Iconname type="string">page3_img6.png</Iconname>
+          	<Apkname type="string">UCBrowser.apk</Apkname>
+	  	    <ApkPck type="string">com.ucbrowser.tv</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+	      <Widget type="strut">
+            <IconPosition type="string">page3_item7</IconPosition>
+	  	    <Iconname type="string">page3_img7.png</Iconname>
+          	<Apkname type="string">kuaituliulan.apk</Apkname>
+	  	    <ApkPck type="string">com.alensw.PicFolder</ApkPck>
+	  	    <IconVersion type="string">0</IconVersion>
+	      </Widget>
+    	</Page>
+	<!--页面5的信息-->
+	<!--
+	第五个页面图标已固定，可以不用配置
+	-->
+    	
+    	<!-- 
+    	如果想增加广告，请添加如下子项：
+    	<Ad type="strut">
+	  	    <AdPosition type="string">ad0_item0</AdPosition>
+	  	    <AdPicName type="string">page0_img0.png</AdPicName>
+	  	    <AdLink type="string">http://www.timetop.cn</AdLink>
+	  	    <AdPicVer type="string">0</AdPicVer>
+	  	 </Ad>
+    	 -->
+    	<Page>
+    	<Ad type="strut">
+	  	    <AdPosition type="string">ad0_item0</AdPosition>
+	  	    <AdPicName type="string">ad0.png</AdPicName>
+	  	    <AdLink type="string">http://www.timetop.cn</AdLink>
+	  	    <AdPicVer type="string">0</AdPicVer>
+	  	 </Ad>	  	 
+		 </Page>	  	 
+    </Pageinfo>
+    
+</DDXPacket>
