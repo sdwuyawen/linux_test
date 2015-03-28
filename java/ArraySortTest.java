@@ -1,13 +1,24 @@
 import java.util.Arrays;
 import java.util.Comparator;
+
+class AnimalTest{
+	public AnimalTest() {
+		System.out.println("AnimalTest");	
+	} 
+    int testCnt;
+}
  
 class Animal{
     int size;
 }
  
 class Dog extends Animal{
+	private AnimalTest test;
     public Dog(int s){
         size = s;
+        System.out.println("before test = " + test);
+        test = new AnimalTest();
+        System.out.println("after test = " + test);
     }
 }
  
@@ -27,12 +38,14 @@ class AnimalSizeComparator implements Comparator<Animal>{
 }
  
 public class ArraySortTest {
- 
+	static Dog d;				
+	
     public static void main(String[] args) {
         Dog d1 = new Dog(2);
         Dog d2 = new Dog(1);
         Dog d3 = new Dog(3);
- 
+		
+		System.out.println("d = " + d);			//未初始化，为null
 		System.out.println("dogArray");
         Dog[] dogArray = {d1, d2, d3};
         printDogs(dogArray);

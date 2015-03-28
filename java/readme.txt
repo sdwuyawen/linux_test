@@ -234,3 +234,20 @@
 		f, g, d, a, c, b, h,	
 		调用get()访问之后，元素移到队列尾
 		调用put()之后，新的元素移到队列尾
+
+   7). ArraySortTest.java
+	class Dog extends Animal{
+		private AnimalTest test;
+		public Dog(int s){
+			size = s;
+			System.out.println("before test = " + test);	//test实例未初始化，为null, 和c++(test会先构造)不一样
+	        test = new AnimalTest();						//调用构造函数
+	        System.out.println("after test = " + test);		//test实例不为null	
+		}
+	}
+	
+	
+	public class ArraySortTest {
+		static Dog d;			//未初始化，为null
+		...
+	}
