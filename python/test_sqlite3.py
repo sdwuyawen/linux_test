@@ -27,7 +27,10 @@ def main(argv):
         c.execute('insert into users(name,level) values("wu", 3)')
         db.commit()
     
-    c.execute('select * from users where name=\'chen\'', )
+    if argc > 1:
+        c.execute('select * from users where name=\'%s\'' % argv[1])        
+    else:    
+        c.execute('select * from users where name=\'chen\'')
     print "\ntest all :"
     #if empty, return empty list
     print c.fetchall()
