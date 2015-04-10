@@ -22,11 +22,28 @@
 -->
 <html>
 <body>
-<form action="upload_file.php" method="post" enctype="multipart/form-data">
-	<label for="file">Filename:</label>
-	<input type="file" name="file" id="file" /> 
-	<br />
-	<input type="submit" name="submit" value="Submit" />
-</form>
+	<form action="upload_file.php" method="post" enctype="multipart/form-data">
+		<label for="file">File:</label>
+		<input type="file" name="file"/> 
+		<br />
+		<label for="file">Image:</label>
+		<input type="file" name="image"/>
+		<br />
+		<input type="submit" name="submit" value="Submit" />
+	</form>
+	<form action="user_text.php" method="get">
+		<label for="file">Text:</label>
+		<input type="text" name="user_text"/> 
+		<br />		
+		<input type="radio" name="gender" value="male"> Male<br>
+		<input type="radio" name="gender" value="female"> Female<br>   		
+		<input type="submit" name="submit" value="user_text" />
+	</form>		
+	<form action="password.php" method="get">
+		<label for="file">Text:</label>
+		<input type="password" name="password"/> 
+		<br />		
+		<input type="submit" name="submit" value="password" />
+	</form>			
 </body>
 </html>

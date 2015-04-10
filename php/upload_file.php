@@ -21,10 +21,9 @@
  * 
  * 
  */
-  if ((($_FILES["file"]["type"] == "image/gif")
-     || ($_FILES["file"]["type"] == "image/jpeg")
-     || ($_FILES["file"]["type"] == "image/pjpeg")))
-     //&& ($_FILES["file"]["size"] < 20000))
+  echo $_POST["submit"]. "<br />";
+  echo count($_FILES) . "<br />";
+  if (!empty($_FILES["file"]))
   {
     if ($_FILES["file"]["error"] > 0) {
 	  echo "Return Code: " . $_FILES["file"]["error"] . "<br />";
@@ -41,7 +40,23 @@
         echo "Stored in: " . "upload/" . $_FILES["file"]["name"];
       }
     }
-  } else {
-    echo "Invalid file";
-  }
+  } 
+  if (!empty($_FILES["image"]))
+  {
+    if ($_FILES["image"]["error"] > 0) {
+	  echo "Return Code: " . $_FILES["image"]["error"] . "<br />";
+    } else {
+      echo "Upload: " . $_FILES["image"]["name"] . "<br />";
+      echo "Type: " . $_FILES["image"]["type"] . "<br />";
+      echo "Size: " . ($_FILES["image"]["size"] / 1024) . " Kb<br />";
+      echo "Temp file: " . $_FILES["image"]["tmp_name"] . "<br />";
+
+      if (file_exists("upload/" . $_FILES["image"]["name"])) {
+        echo $_FILES["image"]["name"] . " already exists. ";
+      } else {
+        move_uploaded_file($_FILES["image"]["tmp_name"], "upload/" . $_FILES["image"]["name"]);
+        echo "Stored in: " . "upload/" . $_FILES["image"]["name"];
+      }
+    }
+  }   
 ?>
