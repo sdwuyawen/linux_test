@@ -14,5 +14,6 @@
 
 void main_xxx(void)
 {
+	printf("libtest_inc_cnt = %p\n", libtest_inc_cnt);
 	printf("%s : %d\n", __FILE__, libtest_get_cnt());
 }

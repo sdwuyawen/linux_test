@@ -41,7 +41,6 @@ CFLAGS += -fPIC
 LOCAL_LDLIBS := -ldl
 LOCAL_LIB_LDLIBS :=
 
-#LOCAL_EXT_LIB := y
 
 define compiler_shared
 $(1) : $(2)
@@ -68,7 +67,9 @@ $(TARGETS_LIB): $(LIB_OBJS_C)
 	@echo "[LD] $(TARGETS_LIB)"
 	$(_Q)$(CC) -shared $(LDFLAGS) -o $@ $^ $(LOCAL_LIB_LDLIBS)
 
+#LOCAL_EXT_LIB := y
 $(eval $(call compiler_shared,$(TARGETS_LIB1),$(LIB_OBJS1_C)))
+#LOCAL_EXT_LIB := y
 $(eval $(call compiler_shared,$(TARGETS_LIB2),$(LIB_OBJS2_C)))	
 		
 #=========================================================================	

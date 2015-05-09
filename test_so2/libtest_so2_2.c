@@ -37,9 +37,12 @@ void main_xxx(void)
 		fprintf(stderr, "%s\n", dlerror());		
 		exit(1);
 	}
+	printf("libtest_inc_cnt = %p\n", libtest_inc_cnt);
 	libtest_inc_cnt();
 	printf("%s : main_xxx_func\n", __FILE__);
 	main_xxx_func();	
+	printf("%s : Wait key to close %s\n", __FILE__, lib_path);
+	getchar();
 	dlclose(handle);	
 	printf("%s : exit\n", __FILE__);
 }
