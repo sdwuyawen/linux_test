@@ -58,3 +58,37 @@ return status = 1
 enable exit on non-zero return status and pipefail track
 ./testset.sh: 行 18: 1/0: 除0 （错误符号是 "0"）
    
+5. expr用法
+  string="hello,everyone my name is xiaoming"
+  1).计算字符串的长度
+	我们可以用awk中的length(s)进行计算。我们也可以用echo中的echo ${#string}进行计算，当然也可以expr中的expr length $string 求出字符串的长度.
+	expr length "$string"  
+	-> 34
+	
+  2). expr中的expr index $string substring索引命令功能在字符串$string上找出substring中的字符第一次出现的位置，若找不到则expr index返回0或1
+	expr index "$string" my
+    -> 11
+    y出现在string的11(从1开始)
+    
+    expr index "$string" nihao
+    -> 1
+    h出现在string的1
+    
+  3). expr中的expr match $string substring命令在string字符串中匹配substring字符串，然后返回匹配到的substring字符串的长度，若找不到则返回0。
+	expr match "$string" my
+	-> 0
+	expr match "$string" hell.*
+	-> 34	
+	expr "$string" : ".*my.*"
+	->
+	
+	substring从string的开始位置匹配才行.
+	
+  4). 在shell中可以用{string:position}和{string:position:length}进行对string字符串中字符的抽取。
+	第一种是从position位置开始抽取直到字符串结束，
+	第二种是从position位置开始抽取长度为length的子串。而用expr中的expr substr $string $position $length同样能实现上述功能。
+	
+	echo ${string:10}
+	echo ${string:10:5}
+	echo ${string:10:10}
+	expr substr "$string" 10 5

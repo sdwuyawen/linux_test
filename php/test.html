@@ -1,0 +1,158 @@
+<!--
+   login.html
+   
+   Copyright 2015 Paul <wu_bao@163.com>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+   
+-->
+<html>
+	<head>
+	<meta http-equiv='Content-Type' content='text/html; charset=utf-8' /> 
+	<title>测试页面</title>		
+	<style type="text/css">
+	tr.change:hover
+	{
+		background-color:#00FF00
+	}
+	</style>
+	
+	<script language="javascript">  
+	function visitOption(){  
+		var oSelCode=document.getElementById("selColor");  
+		var i;  
+		for(i=0;i<oSelCode.options.length;i++){  
+			alert(oSelCode.options[i].firstChild.nodeValue);//重点方法  
+			alert(oSelCode.options[i].getAttribute("value"));//重点方法  
+			//alert(oSelCode.options[i].index);  
+			//alert(oSelCode.options[i].text);  
+			//alert(oSelCode.options[i].value);  
+	    }  
+	}  
+	
+	function visitSelected(){  
+		var oSelCode=document.getElementById("selColor");  
+		alert(oSelCode.selectedIndex);  
+		alert(oSelCode.options[oSelCode.selectedIndex].index);  
+		alert(oSelCode.options[oSelCode.selectedIndex].text);  
+		alert(oSelCode.options[oSelCode.selectedIndex].value);  
+	}  
+	
+	function visitAllSelected(){  
+		var oSelCode=document.getElementById("selColor");  
+		var i;  
+		for(i=0;i<oSelCode.options.length;i++){  
+			//alert(oSelCode.selectedIndex)  
+			if(oSelCode.options[i].selected){  
+				alert(oSelCode.options[i].index);  
+				alert(oSelCode.options[i].text);  
+				alert(oSelCode.options[i].value);  
+			}  
+		}   
+	}  
+	
+	function changeSelected(){  
+		var oSelCode=document.getElementById("selColor");  
+		oSelCodeoSelCode.selectedIndex=oSelCode.options.length-1;//移动到最后一项  
+	}  
+	
+	function addOption(){  
+		var oSelCode=document.getElementById("selColor");  
+		var oOption=document.createElement("option");  
+		oOption.setAttribute("value","yellow");  
+		var oText=document.createTextNode("黄色");  
+		oOption.appendChild(oText);  
+		oSelCode.appendChild(oOption);  
+		//oOption.document.createElement("黄色");//错误  
+		//oOption.document.createTextNode("yellow");//错误  
+		//oSelCode.appendChild(oOption);  
+	}  
+	
+	function delOption(){  
+		var oSelCode=document.getElementById("selColor");  
+		var oOption=oSelCode.options[oSelCode.selectedIndex];  
+		oSelCode.removeChild(oOption);  
+	}  
+	
+	function delAllOption(){  
+		var oSelCode=document.getElementById("selColor");  
+		var i;  
+		for(i=oSelCode.options.length-1;i>=0;i--){  
+			var oOption=oSelCode.options[i];  
+			oSelCode.removeChild(oOption);  
+		}  
+	}  	
+	
+	function onChange(obj) {
+		alert(obj.options[obj.selectedIndex].text);  
+	}
+	</script>  	
+	</head>
+	<body>
+
+	<form>  
+	<h2>选择喜欢的颜色：</h2>			
+		<select id="selColor" name="selColor" multiple="true"><!-- 加size="3"为列表框 -->  
+						 <option value="red">红色</option>  
+						 <option value="green" selected>绿色</option>  
+						 <option value="blue">蓝色</option>  
+					   </select><br>  
+	   <input type="button" value="遍历组合框" onclick="visitOption();"><br>  
+	   <input type="button" value="获取选中项" onclick="visitSelected();"><br>  
+	   <input type="button" value="获取所有选中项" onclick="visitAllSelected();"><br>  
+	   <input type="button" value="更改选中项" onclick="changeSelected();"><br>  
+	   <input type="button" value="添加选项" onclick="addOption();"><br>  
+	   <input type="button" value="删除选项" onclick="delOption();"><br>  
+	   <input type="button" value="删除所有选项" onclick="delAllOption();"><br>  
+	</form>
+	
+	<form>  
+	<h2>下拉列表：</h2>				
+	<select name="name_list" onchange="onChange(this)">  
+	  <optgroup label="Swedish Cars">  
+		<option value="1">Volvo</option>  
+		<option value="2" selected>Saab</option>  
+	  </optgroup>  
+	  <optgroup label="German Cars">  
+		<option value="3">Mercedes</option>  
+		<option value="4" title="Audi, your best choice!">Audi</option>  
+	  </optgroup>  
+	</select>  	
+    </form>
+    
+	<form>
+	<h2>鼠标经停变色</h2>
+	<table width="80%" border="1" align="center">
+	  <tr class="change">
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+	  </tr>
+	  <tr class="change">
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+	  </tr>
+	  <tr class="change">
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+	  </tr>	  
+	</form> 	  
+	</body>	
+</html>
+
