@@ -4082,6 +4082,7 @@ static void* sys_alloc(mstate m, size_t nb) {
     }
   }
 
+  printf("%s:1\n", __func__);
   /*
     Try getting memory in any of three ways (in most-preferred to
     least-preferred order):
@@ -4129,6 +4130,7 @@ static void* sys_alloc(mstate m, size_t nb) {
       }
     }
     else {
+		printf("%s:2\n", __func__);
       /* Subtract out existing available top space from MORECORE request. */
       ssize = granularity_align(nb - m->topsize + SYS_ALLOC_PADDING);
       /* Use mem here only if it did continuously extend old space */
@@ -4140,7 +4142,9 @@ static void* sys_alloc(mstate m, size_t nb) {
     }
 
     if (tbase == CMFAIL) {    /* Cope with partial failure */
+		printf("%s:3\n", __func__);
       if (br != CMFAIL) {    /* Try to use/extend the space we did get */
+		  printf("%s:4\n", __func__);
         if (ssize < HALF_MAX_SIZE_T &&
             ssize < nb + SYS_ALLOC_PADDING) {
           size_t esize = granularity_align(nb + SYS_ALLOC_PADDING - ssize);
@@ -4165,7 +4169,7 @@ static void* sys_alloc(mstate m, size_t nb) {
 
     RELEASE_MALLOC_GLOBAL_LOCK();
   }
-
+printf("%s:5\n", __func__);
   if (HAVE_MMAP && tbase == CMFAIL) {  /* Try MMAP */
 	  printf("call mmap\n");
     char* mp = (char*)(CALL_MMAP(asize));
@@ -4177,6 +4181,7 @@ static void* sys_alloc(mstate m, size_t nb) {
   }
 
   if (HAVE_MORECORE && tbase == CMFAIL) { /* Try noncontiguous MORECORE */
+	  printf("%s:6\n", __func__);
     if (asize < HALF_MAX_SIZE_T) {
       char* br = CMFAIL;
       char* end = CMFAIL;
@@ -4195,7 +4200,7 @@ static void* sys_alloc(mstate m, size_t nb) {
   }
 
   if (tbase != CMFAIL) {
-
+printf("%s:7\n", __func__);
     if ((m->footprint += tsize) > m->max_footprint)
       m->max_footprint = m->footprint;
 
@@ -4263,6 +4268,7 @@ static void* sys_alloc(mstate m, size_t nb) {
       return chunk2mem(p);
     }
   }
+  printf("%s:8\n", __func__);
 
   MALLOC_FAILURE_ACTION;
   return 0;

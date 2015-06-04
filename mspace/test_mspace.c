@@ -50,7 +50,9 @@ int main(int argc, char *argv[])
 	void *addr1 = NULL;
 	size_t size2 = 256;
 	void *addr2 = NULL;
-	
+	size_t size3 = kMaxCodeCacheCapacity - 512;
+	void *addr3 = NULL;
+		
 	gExecutableStore = malloc(kMaxCodeCacheCapacity);
 	if (gExecutableStore == NULL) {
 		printf("error malloc\n");
@@ -74,7 +76,16 @@ int main(int argc, char *argv[])
 		printf("-> malloc addr2 = %p, 0x%x\n", addr2, (uint32_t)size2);
 		mspace_malloc_stats(gMspace);
 		printf("addr2 size = 0x%x\n", (uint32_t)mspace_usable_size(addr2));
-	}					
+	}	
+				
+	addr3 = mspace_malloc(gMspace, size3);
+	if (addr3 != NULL) {
+		printf("-> malloc addr3 = %p, 0x%x\n", addr3, (uint32_t)size3);
+		mspace_malloc_stats(gMspace);
+		printf("addr3 size = 0x%x\n", (uint32_t)mspace_usable_size(addr3));
+	} else {
+		printf("malloc addr3 error!\n");
+	}			
 
 	if (addr1 != NULL) {
 		mspace_free(gMspace, addr1);
@@ -82,6 +93,10 @@ int main(int argc, char *argv[])
 	
 	if (addr2 != NULL) {
 		mspace_free(gMspace, addr2);
+	}				
+
+	if (addr3 != NULL) {
+		mspace_free(gMspace, addr3);
 	}				
 	
 	printf("-> all free\n");
