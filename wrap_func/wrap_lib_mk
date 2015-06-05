@@ -1,6 +1,8 @@
 #=========================================================================
 TARGETS := libwrap_lib.a
 
+TARGETS_CLEAN := $(TARGETS)
+
 SRCS_C := libc.c
 OBJS_C := $(subst .c,.o,$(SRCS_C))
 OBJS_C := $(foreach i,$(OBJS_C),$(TARGETS_OBJ_DIR)/$(i))
@@ -11,8 +13,6 @@ OBJS_CXX := $(foreach i,$(OBJS_CXX),$(TARGETS_OBJ_DIR)/$(i))
 OBJS := $(OBJS_C) $(OBJS_CXX)
 
 #=========================================================================	
-#CFLAGS += -fPIC
-
 #=========================================================================	
 #$(TARGETS): $(TARGETS_LIB) $(OBJS) 
 $(TARGETS): $(OBJS) 
