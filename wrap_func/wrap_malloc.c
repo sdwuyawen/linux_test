@@ -30,9 +30,18 @@ static inline size_t _get_call_addr(void)
         : "=r"(p)
     );
     return (size_t)p - MEM_OFFSET;
-#else 
-	p = 0;
-	return (size_t)p;
+#elif defined(__x86_64__)
+    __asm__ volatile(
+        "mov 8(%%rbp), %0\n"
+        : "=r"(p)
+    );
+    return (size_t)p;
+#else	//__i386__
+    __asm__ volatile(
+        "mov 4(%%ebp), %0\n"
+        : "=r"(p)
+    );
+    return (size_t)p;
 #endif    
 }
  
@@ -237,6 +246,30 @@ void wrap(_ZdaPv)(void *ptr)
 	__sync_fetch_and_sub(&g_mem_used_size, size);
 	
 	__real_free((void *)p);
+}
+
+char *wrap(strndup)(const char *src, size_t len)
+{
+	char* dst = (char*) wrap(malloc)(len + 1);
+	if (dst) {
+		strncpy(dst, src, len + 1);
+	}
+	
+	return dst; 
+}
+
+char *wrap(__strdup)(const char *src)
+{
+	size_t len = strlen(src);
+	
+	return strndup(src, len); 
+}
+
+char *wrap(strdup)(const char *src)
+{
+	size_t len = strlen(src);
+	
+	return strndup(src, len); 
 }
 
 static __attribute__((destructor)) void wrap_malloc_exit( void );

@@ -15,6 +15,9 @@ extern void wrap_malloc_debug(int enable);
  */
 int main(int argc, char *argv[])
 {
+	const char *str = "hello world";
+	char *new_str = NULL;
+	
 	wrap_malloc_debug(1);
 	
 	if (argc > 1) {
@@ -38,6 +41,12 @@ int main(int argc, char *argv[])
 	if (ptr != NULL) {
 		printf("calloc OK!\n");
 	}
+	wrap_malloc_info();
+	
+	new_str = strdup(str);
+	if (new_str != NULL) {
+		printf("new_str = %s\n", new_str);
+	}
 	
 	wrap_malloc_info();
 	if (new_ptr != NULL) {
@@ -46,6 +55,10 @@ int main(int argc, char *argv[])
 	
 	if (ptr != NULL) {
 		free(ptr);
+	}
+	
+	if (new_str != NULL) {
+		free(new_str);
 	}
 	
 	return 0;
