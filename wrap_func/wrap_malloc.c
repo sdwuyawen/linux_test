@@ -262,14 +262,14 @@ char *wrap(__strdup)(const char *src)
 {
 	size_t len = strlen(src);
 	
-	return strndup(src, len); 
+	return wrap(strndup)(src, len); 
 }
 
 char *wrap(strdup)(const char *src)
 {
 	size_t len = strlen(src);
 	
-	return strndup(src, len); 
+	return wrap(strndup)(src, len); 
 }
 
 static __attribute__((destructor)) void wrap_malloc_exit( void );
