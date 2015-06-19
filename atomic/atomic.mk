@@ -7,7 +7,8 @@ OBJS_C := $(foreach i,$(OBJS_C),$(TARGETS_OBJ_DIR)/$(i))
 
 OBJS := $(OBJS_C) $(OBJS_CXX)
 
-CFLAGS := -DANDROID_SMP=0
+#CFLAGS := -DANDROID_SMP=0
+CFLAGS := -DANDROID_SMP=1
 #=========================================================================	
 LOCAL_LDLIBS := -lm -lpthread
 
