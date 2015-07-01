@@ -16,6 +16,7 @@ clean:
 	
 else
 
-obj-m := mmap.o
+obj-m := myv4l.o
+myv4l-objs := drv_v4l.o
 
 endif
